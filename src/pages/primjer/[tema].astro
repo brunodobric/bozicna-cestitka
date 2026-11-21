@@ -1,0 +1,18 @@
+---
+// Primjer čestitke za svaku temu, bez baze: /primjer/klasicna, /primjer/zimska, /primjer/moderna.
+// Kuverta se prikazuje svaki put (ključ ''), da se otvaranje može pokazati više puta zaredom.
+import CestitkaLayout from '../../layouts/CestitkaLayout.astro';
+import Envelope from '../../components/Envelope.astro';
+import Karta from '../../components/Karta.astro';
+import { PRIMJERI } from '../../lib/cestitka';
+import { TEME } from '../../lib/teme';
+
+const info = TEME.find((t) => t.key === Astro.params.tema);
+if (!info) return new Response(null, { status: 404 });
+const p = PRIMJERI[info.key];
+---
+
+<CestitkaLayout tema={info.key} envelope="" noindex={false} title={`Primjer čestitke: ${info.naziv}`}>
+  <Envelope storageKey="" naslov={p.naslov} za={p.za} pecat={info.pecat} />
+  <Karta naslov={p.naslov} poruka={p.poruka} od={p.od} slika={p.slika} />
+</CestitkaLayout>

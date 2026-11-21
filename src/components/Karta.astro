@@ -1,0 +1,79 @@
+---
+// Čestitka koju primatelj vidi kad se kuverta otvori: slika (neobavezno), naslov, poruka i potpis.
+// Raspored je namjerno jednostavan i fiksan, jer se ista čestitka crta na canvas za "Spremi kao sliku"
+// (scripts/spremi.ts). Promjena rasporeda ovdje traži istu promjenu u crtanju.
+interface Props {
+  naslov: string;
+  poruka: string;
+  od: string;
+  slika: string | null; // javni URL slike ili null
+  gumbi?: boolean; // Spremi kao sliku / Otvori ponovno
+}
+const { naslov, poruka, od, slika, gumbi = true } = Astro.props;
+---
+
+<main class="cest">
+  <article class="karta" id="karta" data-slika={slika ? '1' : '0'}>
+    {slika && <img id="karta-slika" class="karta__slika" src={slika} alt="" crossorigin="anonymous" width="1600" height="1200" />}
+    <div class="karta__tekst">
+      {!slika && (
+        <span class="karta__ukras" aria-hidden="true">
+          <span></span>✦<span></span>
+        </span>
+      )}
+      <h1 class="karta__naslov" id="karta-naslov">{naslov}</h1>
+      {poruka && <p class="karta__poruka" id="karta-poruka">{poruka}</p>}
+      {od && <p class="karta__potpis" id="karta-potpis">{od}</p>}
+    </div>
+  </article>
+  {
+    gumbi && (
+      <>
+        <div class="gumbi">
+          <button type="button" class="gumb" id="spremi">
+            Spremi kao sliku
+          </button>
+          <button type="button" class="gumb gumb--sporedni" id="ponovi">
+            Otvori ponovno
+          </button>
+        </div>
+        <p class="napomena" id="napomena">
+          Na mobitelu se otvara izbornik za dijeljenje: odaberite „Spremi sliku”.
+        </p>
+      </>
+    )
+  }
+</main>
+
+<script>
+  import { spremiKaoSliku } from '../scripts/spremi';
+
+  const karta = document.getElementById('karta');
+  // Kad se kuverta makne, čestitka "doleti" i malo se zumira.
+  document.addEventListener('mwi:env-open', () => karta?.classList.add('is-in'), { once: true });
+  // Bez kuverte (već otvorena na ovom uređaju) čestitka je odmah vidljiva.
+  if (!document.documentElement.classList.contains('env')) karta?.classList.add('is-in');
+
+  document.getElementById('ponovi')?.addEventListener('click', () => {
+    // Pokaži kuvertu ponovno: zaboravi da je otvorena na ovom uređaju.
+    try {
+      for (const k of Object.keys(localStorage)) if (k.startsWith('cestitka-kuverta:')) localStorage.removeItem(k);
+    } catch {}
+    location.reload();
+  });
+
+  const gumb = document.getElementById('spremi') as HTMLButtonElement | null;
+  const napomena = document.getElementById('napomena');
+  gumb?.addEventListener('click', async () => {
+    if (!karta) return;
+    gumb.disabled = true;
+    try {
+      await spremiKaoSliku(karta);
+    } catch (e) {
+      console.error('spremi', e);
+      if (napomena) napomena.textContent = 'Slika se nije spremila. Pokušajte ponovno ili napravite snimku zaslona.';
+    } finally {
+      gumb.disabled = false;
+    }
+  });
+</script>

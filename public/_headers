@@ -1,0 +1,10 @@
+# Fontovi i skripte u /_astro/ imaju hash u imenu, pa se smiju dugo čuvati.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/og.png
+  Cache-Control: public, max-age=604800
+
+# Pomoćna adresa Workera ne ide u tražilice (za statične datoteke; stranice to rješava middleware).
+https://:worker.:account.workers.dev/*
+  X-Robots-Tag: noindex

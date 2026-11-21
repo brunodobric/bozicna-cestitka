@@ -1,0 +1,224 @@
+/* Stranica čestitke (primatelj): dopune kuverte za čestitke, snijeg, kartica i gumbi.
+   Boje dolaze iz styles/teme.css. */
+:root {
+  --gutter: max(16px, env(safe-area-inset-left));
+}
+html,
+body {
+  margin: 0;
+}
+body.inv {
+  background: var(--bg);
+  color: var(--na-pozadini);
+  font: 400 16px/1.6 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- kuverta: dopune iz prototipa (podstava s prugama, okvir kartice, boje upute) ---------- */
+.inv-env__flap-face--in {
+  background: repeating-linear-gradient(135deg, var(--env-liner) 0 7px, var(--env-liner-stripe) 7px 8px);
+}
+.inv-env__card {
+  border-color: var(--accent);
+  outline: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: -6px;
+}
+.inv-env__card-names {
+  font-style: italic;
+}
+.inv-env__hint,
+.inv-env__skip {
+  color: var(--na-pozadini);
+}
+.inv-env__seal-text {
+  font-size: 1.35rem;
+}
+.inv-env {
+  background: radial-gradient(ellipse 85% 60% at 50% 44%, var(--bg-glow) 0%, var(--bg) 72%);
+}
+
+/* ---------- snijeg ---------- */
+.snijeg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+  overflow: hidden;
+}
+.snijeg i {
+  position: absolute;
+  top: -12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.75;
+  animation: pada linear infinite;
+}
+@keyframes pada {
+  to {
+    transform: translate3d(var(--dx, 20px), 105vh, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .snijeg {
+    display: none;
+  }
+}
+
+/* ---------- čestitka nakon otvaranja ---------- */
+.cest {
+  box-sizing: border-box;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 2rem max(16px, env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: radial-gradient(ellipse 85% 60% at 50% 44%, var(--bg-glow) 0%, var(--bg) 72%);
+}
+.karta {
+  width: min(100%, 460px);
+  background: var(--k-papir);
+  color: var(--k-tekst);
+  border: 1px solid var(--k-rub);
+  outline: 1px solid var(--k-rub2);
+  outline-offset: -8px;
+  border-radius: 3px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+html.env .karta {
+  opacity: 0;
+}
+.karta.is-in {
+  animation: zum 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes zum {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .karta.is-in {
+    animation: none;
+  }
+}
+.karta__slika {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.karta__tekst {
+  padding: 1.5rem 1.75rem 1.75rem;
+  text-align: center;
+}
+.karta[data-slika='0'] .karta__tekst {
+  padding: 2.75rem 1.75rem 2.5rem;
+}
+.karta__ukras {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  color: var(--k-rub);
+  font-size: 1rem;
+}
+.karta__ukras span {
+  width: 3.5rem;
+  height: 1px;
+  background: currentColor;
+}
+.karta__naslov {
+  font-family: var(--k-font-naslov);
+  font-style: var(--k-stil-naslov);
+  font-weight: 400;
+  font-size: 2rem;
+  line-height: 1.15;
+  color: var(--k-naslov);
+  margin: 0 0 0.75rem;
+  overflow-wrap: anywhere;
+}
+.karta__poruka {
+  font-family: var(--k-font-tekst);
+  font-size: 1.125rem;
+  line-height: 1.55;
+  white-space: pre-line;
+  margin: 0 0 1rem;
+  overflow-wrap: anywhere;
+}
+.karta__potpis {
+  font-family: var(--k-font-tekst);
+  font-style: italic;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  color: var(--k-potpis);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.gumbi {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.gumb {
+  min-height: 44px;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--gumb-bg);
+  background: var(--gumb-bg);
+  color: var(--gumb-tekst);
+  font: 600 0.9375rem/1 var(--font-body);
+  cursor: pointer;
+}
+.gumb:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.gumb:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.gumb--sporedni {
+  background: transparent;
+  color: var(--na-pozadini);
+  border-color: color-mix(in srgb, var(--na-pozadini) 55%, transparent);
+}
+.napomena {
+  font-size: 0.8125rem;
+  color: var(--na-pozadini-tiho);
+  text-align: center;
+  max-width: 40ch;
+  margin: 0;
+}
+.cest__potpis {
+  font-size: 0.75rem;
+  color: var(--na-pozadini-tiho);
+  margin: 0.5rem 0 0;
+}
+.cest__potpis a {
+  color: inherit;
+}
+
+/* ---------- čestitka nije pronađena ---------- */
+.cest--prazno h1 {
+  font: italic 400 2rem/1.2 var(--font-head);
+  color: var(--na-pozadini);
+  margin: 0;
+  text-align: center;
+}
+.cest--prazno p {
+  max-width: 36ch;
+  text-align: center;
+  margin: 0;
+}

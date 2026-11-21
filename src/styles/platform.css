@@ -1,0 +1,252 @@
+/* Stranice platforme (početna, uređivač). Boje su iz božićne palete klasične teme. */
+:root {
+  --p-bg: #faf7f1;
+  --p-surface: #ffffff;
+  --p-text: #221d19;
+  --p-muted: #6a5f55;
+  --p-primary: #8a1c24;
+  --p-primary-hover: #a3262f;
+  --p-green: #0f2e22;
+  --p-gold: #b8892f;
+  --p-border: #e6ddd0;
+  --p-font-head: 'EB Garamond', 'Times New Roman', serif;
+  --p-font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+}
+body.platform {
+  background: var(--p-bg);
+  color: var(--p-text);
+  font: 400 1rem/1.6 var(--p-font-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+.p-header,
+.p-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem max(16px, env(safe-area-inset-left));
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+}
+.p-logo {
+  font: italic 500 1.375rem/1 var(--p-font-head);
+  color: var(--p-primary);
+  text-decoration: none;
+}
+.p-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1rem max(16px, env(safe-area-inset-left)) 3rem;
+}
+.p-footer {
+  font-size: 0.8125rem;
+  color: var(--p-muted);
+  border-top: 1px solid var(--p-border);
+}
+.p-footer nav {
+  display: flex;
+  gap: 1rem;
+}
+.p-footer a {
+  color: inherit;
+}
+h1,
+h2 {
+  font-family: var(--p-font-head);
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 0 0 0.75rem;
+}
+h1 {
+  font-size: clamp(2.25rem, 7vw, 3.5rem);
+}
+h2 {
+  font-size: clamp(1.5rem, 4.5vw, 2rem);
+}
+p {
+  margin: 0 0 1rem;
+}
+.p-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--p-primary);
+  background: var(--p-primary);
+  color: #fff;
+  font: 600 1rem/1 var(--p-font-body);
+  text-decoration: none;
+  cursor: pointer;
+}
+.p-btn:hover {
+  background: var(--p-primary-hover);
+}
+.p-btn:focus-visible {
+  outline: 2px solid var(--p-gold);
+  outline-offset: 3px;
+}
+.p-btn--ghost {
+  background: transparent;
+  color: var(--p-primary);
+}
+.p-btn--ghost:hover {
+  background: #f6ecea;
+}
+.p-muted {
+  color: var(--p-muted);
+}
+.p-small {
+  font-size: 0.875rem;
+}
+
+/* ---------- početna ---------- */
+.h-hero {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+  padding: 2rem 0 3rem;
+}
+@media (min-width: 860px) {
+  .h-hero__slika {
+    aspect-ratio: 4 / 5;
+  }
+  .h-hero {
+    grid-template-columns: 1.1fr 1fr;
+    padding: 4rem 0;
+  }
+}
+.h-hero__lead {
+  font-size: 1.125rem;
+  color: var(--p-muted);
+  max-width: 34rem;
+}
+.h-hero__cta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+.h-hero__slika {
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--p-green);
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.h-koraci {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  margin: 0 0 3rem;
+  list-style: none;
+  counter-reset: korak;
+}
+@media (min-width: 720px) {
+  .h-koraci {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.h-koraci li {
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  counter-increment: korak;
+}
+.h-koraci li::before {
+  content: counter(korak);
+  display: block;
+  font: italic 500 1.75rem/1 var(--p-font-head);
+  color: var(--p-gold);
+  margin-bottom: 0.5rem;
+}
+.h-koraci h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+.h-koraci p {
+  margin: 0;
+  color: var(--p-muted);
+  font-size: 0.9375rem;
+}
+.h-teme {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 2rem;
+}
+.h-tema {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.h-tema:hover {
+  border-color: var(--p-gold);
+}
+.h-tema__uzorak {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.h-tema__kuverta {
+  width: 120px;
+  height: 80px;
+  border-radius: 3px;
+  position: relative;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+.h-tema__kuverta::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 60%;
+  clip-path: polygon(0 0, 100% 0, 50% 98%);
+  background: var(--flap);
+}
+.h-tema__kuverta::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 59%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--seal);
+}
+.h-tema__tekst {
+  display: block;
+  padding: 0.875rem 1rem 1rem;
+}
+.h-tema__tekst strong {
+  display: block;
+}
+.h-tema__tekst span {
+  font-size: 0.875rem;
+  color: var(--p-muted);
+}

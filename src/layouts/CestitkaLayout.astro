@@ -1,0 +1,51 @@
+---
+// Kostur stranice čestitke (primatelj i primjeri). Kao InvitationLayout u Kuverti: ne koristi Base.astro,
+// pa primatelj preuzima samo CSS kuverte i čestitke te fontove svoje teme.
+// Pregled poveznice (WhatsApp, Viber) je namjerno opći, bez imena i poruke: link vidi i tko ga proslijedi.
+import ThemeFonts from '../components/ThemeFonts.astro';
+import EnvelopeHead from '../components/EnvelopeHead.astro';
+import Snijeg from '../components/Snijeg.astro';
+import { tema as temaInfo } from '../lib/teme';
+import { SITE_NAME, siteOrigin } from '../lib/seo';
+import '../styles/kuverta.css';
+import '../styles/teme.css';
+import '../styles/cestitka.css';
+
+interface Props {
+  tema: string;
+  envelope?: string | null; // null = bez kuverte, '' = svaki put, inače ključ (token)
+  title?: string;
+  noindex?: boolean; // primjeri tema smiju u tražilice, čestitke kupaca nikad
+}
+const { tema, envelope = null, title = 'Stigla vam je božićna čestitka', noindex = true } = Astro.props;
+const info = temaInfo(tema);
+const origin = siteOrigin(Astro.url);
+---
+
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content={info.bg} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <title>{title}</title>
+    <meta name="description" content="Otvorite kuvertu i pročitajte čestitku." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="hr_HR" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content="Otvorite kuvertu i pročitajte čestitku." />
+    <meta property="og:image" content={`${origin}/og-cestitka.png`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Božićna kuverta s pečatom" />
+    <meta name="twitter:card" content="summary_large_image" />
+    {typeof envelope === 'string' && <EnvelopeHead storageKey={envelope} />}
+    <ThemeFonts families={info.fonts} preload={info.preload} />
+  </head>
+  <body class="inv" data-tema={info.key} style={`background:${info.bg}`}>
+    <slot />
+    <Snijeg />
+  </body>
+</html>

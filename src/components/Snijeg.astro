@@ -1,0 +1,23 @@
+---
+// Snijeg u pozadini (čisti CSS, pahulje slaže mala skripta). Isključen uz smanjenje animacija.
+---
+
+<div class="snijeg" aria-hidden="true"></div>
+<script is:inline>
+  (function () {
+    var s = document.querySelector('.snijeg');
+    if (!s) return;
+    var n = window.innerWidth < 600 ? 32 : 48;
+    for (var i = 0; i < n; i++) {
+      var f = document.createElement('i');
+      var size = 2 + Math.random() * 5;
+      f.style.left = Math.random() * 100 + 'vw';
+      f.style.width = f.style.height = size + 'px';
+      f.style.opacity = (0.35 + Math.random() * 0.5).toFixed(2);
+      f.style.animationDuration = (7 + Math.random() * 9).toFixed(1) + 's';
+      f.style.animationDelay = (-Math.random() * 14).toFixed(1) + 's';
+      f.style.setProperty('--dx', (Math.random() * 60 - 30).toFixed(0) + 'px');
+      s.appendChild(f);
+    }
+  })();
+</script>

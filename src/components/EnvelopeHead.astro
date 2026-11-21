@@ -1,0 +1,31 @@
+---
+// Preuzeto iz Kuverte doslovno (samo ključ u localStorageu ima novi prefiks).
+// Rano (u <head>) odlučuje hoće li se prikazati kuverta, da ne bljesne čestitka prije nje.
+interface Props {
+  storageKey: string; // '' = svaki put; inače samo dok primatelj ne otvori kuvertu na tom uređaju
+}
+const { storageKey } = Astro.props;
+---
+
+<script is:inline define:vars={{ storageKey }}>
+  try {
+    var seen = false;
+    if (storageKey) {
+      try {
+        seen = !!localStorage.getItem('cestitka-kuverta:' + storageKey);
+      } catch (e) {}
+    }
+    if (!seen) {
+      document.documentElement.classList.add('env');
+      // Sigurnosna mreža: ako se skripta kuverte ne pokrene, ne smije zauvijek prekrivati čestitku.
+      document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+          if (!window.__envReady) {
+            document.documentElement.classList.remove('env');
+            document.dispatchEvent(new Event('mwi:env-open'));
+          }
+        }, 2500);
+      });
+    }
+  } catch (e) {}
+</script>

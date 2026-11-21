@@ -1,0 +1,5 @@
+# Kopiraj u .dev.vars (lokalni razvoj; datoteka je u .gitignore)
+SUPABASE_URL=https://xxxxxxxx.supabase.co
+SUPABASE_ANON_KEY=javni-publishable-kljuc
+# Službena adresa stranice kad domena bude gotova (kanonske adrese, robots.txt)
+# SITE_URL=https://primjer.hr

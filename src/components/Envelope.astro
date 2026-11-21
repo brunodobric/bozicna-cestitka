@@ -1,0 +1,105 @@
+---
+// Kuverta iz Kuverte (src/components/Envelope.astro): primatelj je dodirne, pečat pukne, zaklopac se otvori
+// (vidi se podstava), kartica izađe i naraste preko ekrana. Na kraju se pojavi čestitka (događaj mwi:env-open,
+// vidi Karta.astro). Izgled prati temu (CSS varijable u styles/teme.css).
+// Prikazuje se samo kad skripta u <head> (EnvelopeHead) doda <html class="env">; bez JS-a je skrivena.
+interface Props {
+  storageKey: string; // '' = prikaži svaki put (primjeri, pregled); inače pamtimo da je primatelj već otvorio
+  naslov: string; // gornji red na kartici, npr. "Sretan Božić"
+  za: string; // "Za Anu"
+  pecat: string; // znak na pečatu
+}
+const { storageKey, naslov, za, pecat } = Astro.props;
+---
+
+<div class="inv-env" id="kuverta" data-key={storageKey} role="dialog" aria-modal="true" aria-label="Čestitka u kuverti">
+  <button type="button" class="inv-env__open" aria-label="Otvori čestitku">
+    <span class="inv-env__stage" aria-hidden="true">
+      <span class="inv-env__envelope">
+        <span class="inv-env__back"></span>
+        <span class="inv-env__card">
+          <span class="inv-env__card-kicker">{naslov}</span>
+          {za && <span class="inv-env__card-names">{za}</span>}
+        </span>
+        <svg class="inv-env__front" viewBox="0 0 300 200" preserveAspectRatio="none" focusable="false">
+          <path class="inv-env__side" d="M0 0 L150 112 L0 200 Z"></path>
+          <path class="inv-env__side" d="M300 0 L150 112 L300 200 Z"></path>
+          <path class="inv-env__bottom" d="M0 200 L150 96 L300 200 Z"></path>
+          <path class="inv-env__fold" d="M0 0 L150 112 L300 0 M0 200 L150 96 L300 200"></path>
+        </svg>
+        <span class="inv-env__deco"></span>
+        <span class="inv-env__flap-shadow"><span></span></span>
+        <span class="inv-env__flap">
+          <span class="inv-env__flap-face inv-env__flap-face--out"></span>
+          <span class="inv-env__flap-face inv-env__flap-face--in"></span>
+          <svg viewBox="0 0 300 120" preserveAspectRatio="none" focusable="false">
+            <path class="inv-env__flap-edge" d="M0 0 L150 118 L300 0"></path>
+          </svg>
+        </span>
+        <span class="inv-env__seal">
+          <span class="inv-env__seal-text">{pecat}</span>
+        </span>
+      </span>
+      <span class="inv-env__ground"></span>
+    </span>
+  </button>
+  <p class="inv-env__hint" aria-live="polite">Dodirnite za otvaranje</p>
+  <button type="button" class="inv-env__skip">Preskoči</button>
+</div>
+
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    var el = document.getElementById('kuverta');
+    if (!el) return;
+    window.__envReady = true;
+    if (!root.classList.contains('env')) {
+      el.remove();
+      return;
+    }
+    var key = el.getAttribute('data-key');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var done = false;
+    // Uputa se pojavi brzo nakon što kuverta sjedne na mjesto.
+    var hint = setTimeout(function () {
+      el.classList.add('is-hinting');
+    }, 1800);
+
+    function remember() {
+      if (!key) return;
+      try {
+        localStorage.setItem('cestitka-kuverta:' + key, '1');
+      } catch (e) {}
+    }
+    function finish() {
+      el.classList.add('is-gone');
+      root.classList.remove('env');
+      document.dispatchEvent(new Event('mwi:env-open'));
+      setTimeout(function () {
+        el.remove();
+      }, reduced ? 200 : 700);
+    }
+    function open(animate) {
+      if (done) return;
+      done = true;
+      clearTimeout(hint);
+      remember();
+      if (animate && !reduced) {
+        el.classList.add('is-open');
+        // kartica je vani: naraste preko ekrana, pa se pojavi čestitka
+        setTimeout(function () {
+          el.classList.add('is-zoom');
+        }, 1750);
+        setTimeout(finish, 2300);
+      } else {
+        finish();
+      }
+    }
+    el.addEventListener('click', function (e) {
+      open(!e.target.closest('.inv-env__skip'));
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') open(false);
+    });
+  })();
+</script>

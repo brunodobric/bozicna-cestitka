@@ -1,0 +1,44 @@
+---
+// Javna čestitka za primatelja: /c/<token>. Token je nasumičan (baza ga radi), pa se ne može pogoditi.
+// Čestitka se prikazuje samo kad je plaćena (RPC javna_cestitka); popis čestitki nije javan.
+// Robotima za pregled poveznice (WhatsApp, Viber...) ne otvaramo čestitku: ne vide osobne podatke
+// i ne broje se kao prvo otvaranje.
+import CestitkaLayout from '../../layouts/CestitkaLayout.astro';
+import Envelope from '../../components/Envelope.astro';
+import Karta from '../../components/Karta.astro';
+import { dohvatiJavnu, ispravanToken, javniUrlSlike } from '../../lib/cestitka';
+import { tema as temaInfo } from '../../lib/teme';
+import { ROBOT, SITE_NAME } from '../../lib/seo';
+
+const { token } = Astro.params;
+const robot = ROBOT.test(Astro.request.headers.get('User-Agent') ?? '');
+const c = !robot && ispravanToken(token) ? await dohvatiJavnu(Astro.locals.supabase, token) : null;
+if (!c && !robot) Astro.response.status = 404;
+const info = temaInfo(c?.tema);
+const slika = c ? javniUrlSlike(Astro.locals.supabaseUrl, c.slika) : null;
+---
+
+{
+  c ? (
+    <CestitkaLayout tema={info.key} envelope={token}>
+      <Envelope storageKey={token!} naslov={c.naslov} za={c.za} pecat={info.pecat} />
+      <Karta naslov={c.naslov} poruka={c.poruka} od={c.od} slika={slika} />
+    </CestitkaLayout>
+  ) : (
+    <CestitkaLayout tema="klasicna">
+      <main class="cest cest--prazno">
+        {robot ? (
+          <h1>Stigla vam je božićna čestitka</h1>
+        ) : (
+          <>
+            <h1>Čestitka nije pronađena</h1>
+            <p>Provjerite je li link kopiran do kraja. Ako jest, čestitka je možda istekla ili još nije poslana.</p>
+          </>
+        )}
+        <p class="cest__potpis">
+          <a href="/">{SITE_NAME}</a>
+        </p>
+      </main>
+    </CestitkaLayout>
+  )
+}

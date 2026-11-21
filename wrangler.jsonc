@@ -1,0 +1,6 @@
+{
+  "name": "bozicna-cestitka",
+  "keep_vars": true,
+  // Vlastita ulazna točka: Astro za stranice; kasnije i cron za brisanje isteklih čestitki (src/worker.ts).
+  "main": "./src/worker.ts"
+}

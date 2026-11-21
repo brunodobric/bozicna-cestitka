@@ -1,0 +1,53 @@
+---
+// Kostur stranica platforme (početna, uređivač, pravne stranice). Čestitke za primatelja
+// koriste CestitkaLayout.astro i ne učitavaju ovaj CSS.
+import '../styles/platform.css';
+import ThemeFonts from '../components/ThemeFonts.astro';
+import { SITE_NAME, siteOrigin } from '../lib/seo';
+
+interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+}
+const { title, description, noindex = false } = Astro.props;
+const origin = siteOrigin(Astro.url);
+const path = Astro.url.pathname;
+const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
+---
+
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f2e22" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="hr_HR" />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {!noindex && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={`${origin}/og-cestitka.png`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <ThemeFonts families={['garamond', 'garamond-italic', 'jakarta']} preload="garamond" />
+  </head>
+  <body class="platform">
+    <header class="p-header">
+      <a class="p-logo" href="/">{SITE_NAME}</a>
+    </header>
+    <main class="p-main">
+      <slot />
+    </main>
+    <footer class="p-footer">
+      <span>{SITE_NAME}</span>
+      <nav aria-label="Pravne informacije">
+        <a href="/privatnost">Privatnost</a>
+        <a href="/uvjeti">Uvjeti korištenja</a>
+      </nav>
+    </footer>
+  </body>
+</html>
