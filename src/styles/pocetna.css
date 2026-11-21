@@ -1,0 +1,396 @@
+/* Početna stranica: božićna noć. Boje iz Brunine palete (crvena #8B0000/#A61C1C, zelena #143627/#1B4332,
+   zlatna #D4AF37, krem #FAF6F0); noćno nebo je ista zelena, samo tamnija. */
+body.pocetna {
+  --n-nebo-1: #060f0c;
+  --n-nebo-2: #0b1d16;
+  --n-nebo-3: #143627;
+  --n-pismo: 'Great Vibes', 'EB Garamond', cursive;
+  background: var(--n-nebo-1);
+  color: var(--p-bg);
+  overflow-x: hidden;
+}
+body.pocetna .p-main {
+  max-width: none;
+  padding: 0;
+}
+body.pocetna .p-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+  max-width: none;
+  justify-content: center;
+  border: 0;
+  padding-top: calc(3.25rem + env(safe-area-inset-top));
+}
+body.pocetna .p-logo {
+  color: var(--p-gold);
+  font: 500 0.8125rem/1 var(--p-font-body);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+body.pocetna .p-footer {
+  max-width: none;
+  background: #0b1d16;
+  color: #b9c7bd;
+  border-top: 1px solid rgba(212, 175, 55, 0.3);
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+.n-wrap {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 max(20px, env(safe-area-inset-left));
+}
+
+/* ---------- snijeg koji pada ---------- */
+body.pocetna .snijeg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+body.pocetna .snijeg i {
+  position: absolute;
+  top: -12px;
+  border-radius: 50%;
+  background: #fff;
+  animation: n-pada linear infinite;
+  will-change: transform;
+}
+@keyframes n-pada {
+  to {
+    transform: translate3d(var(--dx, 20px), 105vh, 0);
+  }
+}
+
+/* ---------- noćna scena ---------- */
+.n-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  background:
+    radial-gradient(ellipse 70% 38% at 50% 100%, rgba(245, 207, 88, 0.14), transparent 70%),
+    linear-gradient(180deg, var(--n-nebo-1) 0%, var(--n-nebo-2) 45%, var(--n-nebo-3) 100%);
+}
+.n-zvijezde i {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff8e1;
+  animation: n-treperi 4s ease-in-out infinite;
+}
+@keyframes n-treperi {
+  50% {
+    opacity: 0.25;
+  }
+}
+.n-mjesec {
+  position: absolute;
+  top: 5.5rem;
+  right: 9%;
+  width: clamp(44px, 7vw, 84px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, #fffdf6 0%, #faf6f0 55%, #e2d9c4 100%);
+  box-shadow:
+    0 0 0 10px rgba(250, 246, 240, 0.06),
+    0 0 60px 18px rgba(250, 246, 240, 0.2);
+}
+.n-lampice {
+  position: relative;
+  z-index: 3;
+  display: block;
+  width: 100%;
+  height: 40px;
+  flex: none;
+}
+.n-lampice__zarulja {
+  animation: n-zmirka 2.6s ease-in-out infinite;
+}
+@keyframes n-zmirka {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.n-hero__tekst {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3.25rem max(20px, env(safe-area-inset-left)) 1.5rem;
+}
+.n-hero h1 {
+  margin: 0 0 1.25rem;
+  color: var(--p-bg);
+  line-height: 1;
+}
+.n-hero__pismo {
+  display: block;
+  font-family: var(--n-pismo);
+  font-size: clamp(3.5rem, 15.5vw, 7.5rem);
+  line-height: 1.05;
+  padding: 0 0.1em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+}
+.n-hero__red {
+  display: block;
+  margin-top: 0.35rem;
+  font: italic 400 clamp(1.375rem, 5vw, 2.125rem) / 1.2 var(--p-font-head);
+  color: var(--p-gold);
+}
+.n-hero__lead {
+  max-width: 35rem;
+  margin: 0 0 1.5rem;
+  font-size: 1.0625rem;
+  color: #e4dfd2;
+}
+.n-hero__cta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+body.pocetna .p-btn {
+  box-shadow: 0 6px 22px rgba(212, 175, 55, 0.28);
+}
+body.pocetna .p-btn--ghost {
+  color: var(--p-bg);
+  border-color: rgba(250, 246, 240, 0.65);
+  box-shadow: none;
+}
+body.pocetna .p-btn--ghost:hover {
+  background: rgba(250, 246, 240, 0.12);
+}
+body.pocetna .p-btn:focus-visible {
+  outline-color: var(--p-bg);
+}
+.n-hero__napomena {
+  margin: 1.125rem 0 0;
+  font-size: 0.875rem;
+  color: #b9c7bd;
+}
+.scena {
+  position: relative;
+  z-index: 2;
+  display: block;
+  flex: none;
+  width: 100%;
+  height: clamp(250px, 36vw, 500px);
+  margin-top: -1.5rem;
+  margin-bottom: -1px;
+}
+.scena__lampica {
+  animation: n-zmirka 2.4s ease-in-out infinite;
+}
+
+/* ---------- kako ide (na snijegu) ---------- */
+.n-snijeg {
+  position: relative;
+  background: var(--p-bg);
+  color: var(--p-text);
+  padding: 2.5rem 0 1rem;
+}
+.n-snijeg__rub {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: clamp(28px, 5vw, 60px);
+  margin-top: -1px;
+  z-index: 1;
+}
+.n-naslov {
+  font-family: var(--n-pismo);
+  font-size: clamp(2.75rem, 9vw, 4rem);
+  line-height: 1.1;
+  text-align: center;
+  color: var(--p-primary);
+  margin: 0 0 2rem;
+}
+.n-naslov--svijetli {
+  color: var(--p-bg);
+}
+.n-koraci {
+  display: grid;
+  gap: 2rem;
+  padding: 0;
+  margin: 0 0 2rem;
+  list-style: none;
+  counter-reset: korak;
+}
+.n-koraci li {
+  counter-increment: korak;
+  position: relative;
+  padding-left: 4.25rem;
+}
+.n-koraci li::before {
+  content: counter(korak);
+  position: absolute;
+  left: 0;
+  top: -0.2rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--p-gold);
+  box-shadow: inset 0 0 0 3px var(--p-bg), inset 0 0 0 4px rgba(212, 175, 55, 0.45);
+  font: 400 2rem/1 var(--n-pismo);
+  color: var(--p-primary);
+  background: #fff;
+}
+.n-koraci h3 {
+  margin: 0 0 0.25rem;
+  font: 500 1.5rem/1.2 var(--p-font-head);
+  color: var(--p-green);
+}
+.n-koraci p {
+  margin: 0;
+  color: var(--p-muted);
+}
+@media (min-width: 800px) {
+  .n-koraci {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+  }
+  .n-koraci li {
+    padding: 4.25rem 0 0;
+    text-align: center;
+  }
+  .n-koraci li::before {
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+  }
+  .n-snijeg {
+    padding-top: 3.5rem;
+  }
+}
+
+/* ---------- kuverte ---------- */
+.n-kuverte {
+  background: linear-gradient(180deg, var(--n-nebo-3) 0%, var(--n-nebo-2) 100%);
+  padding: clamp(5rem, 11vw, 8rem) 0 4rem;
+}
+.n-teme {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.n-tema {
+  display: block;
+  text-decoration: none;
+  color: var(--p-text);
+  background: var(--p-bg);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.55),
+    0 18px 40px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease;
+}
+.n-tema:hover {
+  transform: translateY(-4px);
+}
+.n-tema:focus-visible {
+  outline: 2px solid var(--p-gold);
+  outline-offset: 4px;
+}
+.n-tema__uzorak {
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse 80% 70% at 50% 45%, color-mix(in srgb, var(--tlo) 82%, #fff) 0%, var(--tlo) 75%);
+}
+.n-tema__tekst {
+  display: block;
+  padding: 1rem 1.25rem 1.25rem;
+}
+.n-tema__tekst strong {
+  display: block;
+  font: 500 1.5rem/1.2 var(--p-font-head);
+  color: var(--p-primary);
+}
+.n-tema__tekst span {
+  font-size: 0.9375rem;
+  color: var(--p-muted);
+}
+.n-kuverte__cta {
+  margin: 2.5rem 0 0;
+  text-align: center;
+}
+
+/* mala kuverta: papir sa sjenom, preklopi i voštani pečat */
+.n-kuverta {
+  position: relative;
+  width: 168px;
+  aspect-ratio: 3 / 2;
+  border-radius: 4px;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 0.5px), rgba(0, 0, 0, 0.16) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(to top left, transparent calc(50% - 0.5px), rgba(0, 0, 0, 0.16) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(160deg, color-mix(in srgb, var(--front) 90%, #fff) 0%, var(--front) 45%, color-mix(in srgb, var(--front) 86%, #000) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 14px 26px rgba(0, 0, 0, 0.35),
+    0 3px 6px rgba(0, 0, 0, 0.25);
+  transform: rotate(-3deg);
+}
+.n-kuverta::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 62%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--flap) 92%, #fff) 0%, var(--flap) 60%, color-mix(in srgb, var(--flap) 84%, #000) 100%);
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.3));
+}
+.n-kuverta::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  width: 34px;
+  height: 34px;
+  border-radius: 46% 54% 50% 50% / 52% 48% 54% 46%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 36% 30%, color-mix(in srgb, var(--seal) 65%, #fff) 0%, var(--seal) 45%, color-mix(in srgb, var(--seal) 70%, #000) 100%);
+  box-shadow:
+    inset 0 0 0 5px color-mix(in srgb, var(--seal) 88%, #000),
+    inset 0 0 0 6px color-mix(in srgb, var(--seal) 70%, #fff),
+    0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 599px) {
+  .n-mjesec {
+    top: 4.25rem;
+    right: 7%;
+  }
+  .scena__siroko {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.pocetna .snijeg {
+    display: none;
+  }
+  .n-zvijezde i,
+  .n-lampice__zarulja,
+  .scena__lampica {
+    animation: none;
+  }
+  .n-tema {
+    transition: none;
+  }
+}

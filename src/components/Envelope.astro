@@ -22,12 +22,80 @@ const { storageKey, naslov, za, pecat } = Astro.props;
           {za && <span class="inv-env__card-names">{za}</span>}
         </span>
         <svg class="inv-env__front" viewBox="0 0 300 200" preserveAspectRatio="none" focusable="false">
+          <defs>
+            <linearGradient id="env-sj-l" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#fff" stop-opacity="0.1"></stop>
+              <stop offset="1" stop-color="#000" stop-opacity="0.16"></stop>
+            </linearGradient>
+            <linearGradient id="env-sj-d" x1="1" y1="0" x2="0" y2="0">
+              <stop offset="0" stop-color="#000" stop-opacity="0.06"></stop>
+              <stop offset="1" stop-color="#000" stop-opacity="0.2"></stop>
+            </linearGradient>
+            <linearGradient id="env-sj-dno" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff" stop-opacity="0.2"></stop>
+              <stop offset="0.5" stop-color="#fff" stop-opacity="0.04"></stop>
+              <stop offset="1" stop-color="#000" stop-opacity="0.14"></stop>
+            </linearGradient>
+            <filter id="env-mek" x="-10%" y="-10%" width="120%" height="120%">
+              <feGaussianBlur stdDeviation="3.5"></feGaussianBlur>
+            </filter>
+            <clipPath id="env-okvir"><rect width="300" height="200" rx="3"></rect></clipPath>
+          </defs>
           <path class="inv-env__side" d="M0 0 L150 112 L0 200 Z"></path>
+          <path d="M0 0 L150 112 L0 200 Z" fill="url(#env-sj-l)"></path>
           <path class="inv-env__side" d="M300 0 L150 112 L300 200 Z"></path>
+          <path d="M300 0 L150 112 L300 200 Z" fill="url(#env-sj-d)"></path>
+          <!-- sjena donjeg preklopa na bočnima: papir je debeo -->
+          <g clip-path="url(#env-okvir)">
+            <path d="M0 196 L150 91 L300 196 Z" fill="#000" opacity="0.28" filter="url(#env-mek)"></path>
+          </g>
           <path class="inv-env__bottom" d="M0 200 L150 96 L300 200 Z"></path>
+          <path d="M0 200 L150 96 L300 200 Z" fill="url(#env-sj-dno)"></path>
           <path class="inv-env__fold" d="M0 0 L150 112 L300 0 M0 200 L150 96 L300 200"></path>
+          <path class="inv-env__sjaj" d="M2 200 L150 97.5 L298 200"></path>
         </svg>
-        <span class="inv-env__deco"></span>
+        <span class="inv-env__tekstura"></span>
+        <span class="inv-env__deco">
+          <!-- grančica božikovine ispod pečata -->
+          <svg viewBox="0 0 200 120" focusable="false">
+            <defs>
+              <path id="env-list" d="M0 0 Q8 -15 18 -8 Q23 -19 32 -10 Q39 -19 46 -8 Q55 -10 64 0 Q55 10 46 8 Q39 19 32 10 Q23 19 18 8 Q8 15 0 0 Z"></path>
+              <radialGradient id="env-bobica" cx="0.35" cy="0.3" r="0.8">
+                <stop offset="0" stop-color="#fff" stop-opacity="0.75"></stop>
+                <stop offset="0.3" stop-color="#fff" stop-opacity="0"></stop>
+                <stop offset="1" stop-color="#000" stop-opacity="0.35"></stop>
+              </radialGradient>
+            </defs>
+            <g transform="translate(100 60)">
+              {
+                [
+                  [198, 2],
+                  [158, 1],
+                  [-18, 1],
+                  [22, 2],
+                  [90, 2],
+                ].map(([kut, ton]) => (
+                  <g transform={`rotate(${kut}) translate(16 0)`}>
+                    <use href="#env-list" class={`inv-env__list inv-env__list--${ton}`} />
+                    <path d="M3 0 H58" class="inv-env__zila" />
+                  </g>
+                ))
+              }
+              {
+                [
+                  [-46, 14],
+                  [44, -22],
+                  [38, 30],
+                ].map(([x, y]) => (
+                  <>
+                    <circle cx={x} cy={y} r="6.5" class="inv-env__bobica" />
+                    <circle cx={x} cy={y} r="6.5" fill="url(#env-bobica)" />
+                  </>
+                ))
+              }
+            </g>
+          </svg>
+        </span>
         <span class="inv-env__flap-shadow"><span></span></span>
         <span class="inv-env__flap">
           <span class="inv-env__flap-face inv-env__flap-face--out"></span>

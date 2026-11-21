@@ -30,9 +30,10 @@ npm run build
 ## Struktura
 
 - `src/pages/c/[token].astro`: čestitka za primatelja (RPC `javna_cestitka`; robotima za pregled poveznice ne otvara čestitku).
+- `src/pages/index.astro` + `src/styles/pocetna.css` + `src/components/NocnaScena.astro`: početna kao božićna noć (lampice, snijeg, SVG scena s drvcima, svjetiljkama, snjegovićem i saonicama). Font naslova je Great Vibes (`@fontsource/great-vibes`), samo na početnoj.
 - `src/pages/primjer/[tema].astro`: primjer svake teme, radi bez baze.
-- `src/components/Envelope.astro`, `EnvelopeHead.astro`: kuverta iz Kuverte; CSS u `src/styles/kuverta.css` (doslovno iz Kuvertinog `invitation.css`).
-- `src/components/Karta.astro` + `src/scripts/spremi.ts`: čestitka i "Spremi kao sliku" (crtanje na canvas). **Promjena rasporeda kartice traži istu promjenu u `spremi.ts`.**
+- `src/components/Envelope.astro`, `EnvelopeHead.astro`: kuverta iz Kuverte; CSS u `src/styles/kuverta.css` (doslovno iz Kuvertinog `invitation.css`); bogatiji izgled (tekstura papira, sjene, voštani pečat, grančica) je u `src/styles/cestitka.css`.
+- `src/components/Karta.astro` + `src/scripts/spremi.ts`: čestitka i "Spremi kao sliku" (crtanje na canvas). **Promjena rasporeda kartice traži istu promjenu u `spremi.ts`.** Ukras u kutovima je u `src/lib/ukrasi.ts` i koriste ga oba.
 - `src/lib/teme.ts` + `src/styles/teme.css`: teme `klasicna`, `zimska`, `moderna` (ključevi su u bazi, ne mijenjati).
 - `src/middleware.ts`: Supabase klijent po zahtjevu, CSP, `noindex` i `no-store` na `/c/`, `/napravi`, `/uredi`.
 

@@ -2,6 +2,7 @@
 // Čestitka koju primatelj vidi kad se kuverta otvori: slika (neobavezno), naslov, poruka i potpis.
 // Raspored je namjerno jednostavan i fiksan, jer se ista čestitka crta na canvas za "Spremi kao sliku"
 // (scripts/spremi.ts). Promjena rasporeda ovdje traži istu promjenu u crtanju.
+// Ukrasi u kutovima (lib/ukrasi.ts) crtaju se i na canvasu; uz fotografiju su samo donja dva.
 interface Props {
   naslov: string;
   poruka: string;
@@ -9,7 +10,10 @@ interface Props {
   slika: string | null; // javni URL slike ili null
   gumbi?: boolean; // Spremi kao sliku / Otvori ponovno
 }
+import { KUT_LINIJA, KUT_VELICINA, KUT_ZVIJEZDA } from '../lib/ukrasi';
+
 const { naslov, poruka, od, slika, gumbi = true } = Astro.props;
+const KUTOVI = ['gl', 'gd', 'dl', 'dd']; // gore lijevo, gore desno, dolje lijevo, dolje desno
 ---
 
 <main class="cest">
@@ -25,6 +29,14 @@ const { naslov, poruka, od, slika, gumbi = true } = Astro.props;
       {poruka && <p class="karta__poruka" id="karta-poruka">{poruka}</p>}
       {od && <p class="karta__potpis" id="karta-potpis">{od}</p>}
     </div>
+    {
+      KUTOVI.map((k) => (
+        <svg class={`karta__kut karta__kut--${k}`} viewBox={`0 0 ${KUT_VELICINA} ${KUT_VELICINA}`} aria-hidden="true" focusable="false">
+          <path d={KUT_LINIJA} fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+          <path d={KUT_ZVIJEZDA} fill="currentColor" />
+        </svg>
+      ))
+    }
   </article>
   {
     gumbi && (
