@@ -1,7 +1,12 @@
 ---
-// Početna stranica (korak 3 plana: jedan gumb). SEO tekst, cijena i česta pitanja dolaze u koraku 12,
-// kad budu odlučeni ime, domena i cijena.
+// Početna stranica: noćna božićna scena (lampice, mjesec, snijeg, drvca, svjetiljke, snjegović, saonice).
+// SEO tekst, cijena i česta pitanja dolaze u koraku 12, kad budu odlučeni ime, domena i cijena.
+import '@fontsource/great-vibes/latin-400.css';
+import '@fontsource/great-vibes/latin-ext-400.css';
+import '../styles/pocetna.css';
 import Base from '../layouts/Base.astro';
+import NocnaScena from '../components/NocnaScena.astro';
+import Snijeg from '../components/Snijeg.astro';
 import { TEME } from '../lib/teme';
 import { SITE_DESCRIPTION, SITE_NAME } from '../lib/seo';
 
@@ -10,60 +15,119 @@ const UZORCI: Record<string, { bg: string; front: string; flap: string; seal: st
   zimska: { bg: '#14213d', front: '#f3f6fa', flap: '#fbfcfe', seal: '#a9b8cc' },
   moderna: { bg: '#f6f3ee', front: '#ffffff', flap: '#ffffff', seal: '#b3262e' },
 };
+
+// Lampice na žici: lukovi široki 120, po tri žaruljice na svakom.
+const BOJE = ['#f5cf58', '#e0483f', '#faf6f0', '#3fa66e'];
+const lampice: { x: number; y: number; boja: string; d: string }[] = [];
+for (let luk = 0; luk < 12; luk++) {
+  [
+    [24, 21],
+    [60, 27],
+    [96, 21],
+  ].forEach(([dx, y], i) => {
+    const n = luk * 3 + i;
+    lampice.push({ x: luk * 120 + dx, y, boja: BOJE[n % BOJE.length], d: ((n * 0.43) % 2.6).toFixed(2) });
+  });
+}
+const zica = 'M0 6 ' + Array.from({ length: 12 }, (_, i) => `Q${i * 120 + 60} 46 ${i * 120 + 120} 6`).join(' ');
+
+// Zvijezde: uvijek isti raspored (bez Math.random, da se stranica ne razlikuje između poslužitelja i preglednika).
+let sjeme = 7;
+const rnd = () => ((sjeme = (sjeme * 16807) % 2147483647) - 1) / 2147483646;
+const zvijezde = Array.from({ length: 46 }, () => ({
+  l: (rnd() * 100).toFixed(1),
+  t: (rnd() * 62).toFixed(1),
+  v: (1 + rnd() * 1.6).toFixed(1),
+  d: (rnd() * 4).toFixed(1),
+}));
 ---
 
-<Base title={`Digitalna božićna čestitka u kuverti · ${SITE_NAME}`} description={SITE_DESCRIPTION}>
-  <section class="h-hero">
-    <div>
-      <h1>Božićna čestitka koja stigne u kuverti</h1>
-      <p class="h-hero__lead">
+<Base title={`Digitalna božićna čestitka u kuverti · ${SITE_NAME}`} description={SITE_DESCRIPTION} klasa="pocetna" themeColor="#081410">
+  <Snijeg />
+  <section class="n-hero">
+    <div class="n-zvijezde" aria-hidden="true">
+      {zvijezde.map((z) => <i style={`left:${z.l}%;top:${z.t}%;width:${z.v}px;height:${z.v}px;animation-delay:${z.d}s`} />)}
+    </div>
+    <span class="n-mjesec" aria-hidden="true"></span>
+    <svg class="n-lampice" viewBox="0 0 1440 48" preserveAspectRatio="xMidYMin slice" aria-hidden="true" focusable="false">
+      <path d={zica} fill="none" stroke="#35574a" stroke-width="1.5"></path>
+      {
+        lampice.map((l) => (
+          <g transform={`translate(${l.x} ${l.y})`}>
+            <rect x="-2.5" y="-3" width="5" height="5" rx="1" fill="#04100b" />
+            <g class="n-lampice__zarulja" style={`animation-delay:${l.d}s`}>
+              <circle cy="8" r="13" fill={l.boja} opacity="0.2" />
+              <ellipse cy="8" rx="5" ry="7" fill={l.boja} />
+              <ellipse cx="-1.6" cy="5.5" rx="1.4" ry="2.4" fill="#fff" opacity="0.6" />
+            </g>
+          </g>
+        ))
+      }
+    </svg>
+
+    <div class="n-hero__tekst">
+      <h1>
+        <span class="n-hero__pismo">Božićna čestitka</span>
+        <span class="n-hero__red">koja stigne u kuverti</span>
+      </h1>
+      <p class="n-hero__lead">
         Napišete poruku, po želji dodate fotografiju i pošaljete link na WhatsApp ili Viber. Primatelj dodirne pečat, kuverta se
         otvori, a čestitku može spremiti kao sliku u galeriju.
       </p>
-      <div class="h-hero__cta">
+      <div class="n-hero__cta">
         <a class="p-btn" href="/napravi">Napravi čestitku</a>
         <a class="p-btn p-btn--ghost" href="/primjer/klasicna">Pogledaj primjer</a>
       </div>
-      <p class="p-small p-muted" style="margin-top:1rem">Bez registracije i bez aplikacije, ni za vas ni za primatelja.</p>
+      <p class="n-hero__napomena">Bez registracije i bez aplikacije, ni za vas ni za primatelja.</p>
     </div>
-    <a class="h-hero__slika" href="/primjer/klasicna" aria-label="Otvori primjer čestitke">
-      <span class="h-tema__kuverta" style="--flap:#b42424;--seal:#d4af37;background:#a61c1c;width:min(60%,280px);height:auto;aspect-ratio:3/2"></span>
-    </a>
+    <NocnaScena />
   </section>
 
-  <h2>Kako ide</h2>
-  <ol class="h-koraci">
-    <li>
-      <h3>Napišete čestitku</h3>
-      <p>Odaberete kuvertu, upišete kome je, poruku i potpis. Fotografija je neobavezna.</p>
-    </li>
-    <li>
-      <h3>Pošaljete link</h3>
-      <p>Nakon plaćanja dobijete link i gumb za slanje u WhatsApp, Viber ili Messenger.</p>
-    </li>
-    <li>
-      <h3>Primatelj otvori kuvertu</h3>
-      <p>Pečat pukne, kartica izađe i pretvori se u čestitku koju može spremiti kao sliku.</p>
-    </li>
-  </ol>
+  <section class="n-snijeg">
+    <div class="n-wrap">
+      <h2 class="n-naslov">Kako ide</h2>
+      <ol class="n-koraci">
+        <li>
+          <h3>Napišete čestitku</h3>
+          <p>Odaberete kuvertu, upišete kome je, poruku i potpis. Fotografija je neobavezna.</p>
+        </li>
+        <li>
+          <h3>Pošaljete link</h3>
+          <p>Nakon plaćanja dobijete link i gumb za slanje u WhatsApp, Viber ili Messenger.</p>
+        </li>
+        <li>
+          <h3>Primatelj otvori kuvertu</h3>
+          <p>Pečat pukne, kartica izađe i pretvori se u čestitku koju može spremiti kao sliku.</p>
+        </li>
+      </ol>
+    </div>
+    <svg class="n-snijeg__rub" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path d="M0 0 H1440 V22 Q1320 58 1180 30 T900 34 T620 26 T330 38 T0 20 Z" fill="#faf6f0"></path>
+    </svg>
+  </section>
 
-  <h2>Kuverte</h2>
-  <div class="h-teme">
-    {
-      TEME.map((t) => {
-        const u = UZORCI[t.key];
-        return (
-          <a class="h-tema" href={`/primjer/${t.key}`}>
-            <span class="h-tema__uzorak" style={`background:${u.bg}`}>
-              <span class="h-tema__kuverta" style={`background:${u.front};--flap:${u.flap};--seal:${u.seal}`} />
-            </span>
-            <span class="h-tema__tekst">
-              <strong>{t.naziv}</strong>
-              <span>{t.opis}</span>
-            </span>
-          </a>
-        );
-      })
-    }
-  </div>
+  <section class="n-kuverte">
+    <div class="n-wrap">
+      <h2 class="n-naslov n-naslov--svijetli">Kuverte</h2>
+      <div class="n-teme">
+        {
+          TEME.map((t) => {
+            const u = UZORCI[t.key];
+            return (
+              <a class="n-tema" href={`/primjer/${t.key}`}>
+                <span class="n-tema__uzorak" style={`--tlo:${u.bg}`}>
+                  <span class="n-kuverta" style={`--front:${u.front};--flap:${u.flap};--seal:${u.seal}`} />
+                </span>
+                <span class="n-tema__tekst">
+                  <strong>{t.naziv}</strong>
+                  <span>{t.opis}</span>
+                </span>
+              </a>
+            );
+          })
+        }
+      </div>
+      <p class="n-kuverte__cta"><a class="p-btn" href="/napravi">Napravi čestitku</a></p>
+    </div>
+  </section>
 </Base>

@@ -4,6 +4,8 @@
 // Mobitel: Web Share s datotekom (korisnik odabere "Spremi sliku" i slika ide u galeriju). Inače: preuzimanje PNG-a.
 // Slika iz Supabase Storagea mora imati crossorigin="anonymous", inače canvas ne smije izvesti PNG.
 
+import { KUT_LINIJA, KUT_ZVIJEZDA } from '../lib/ukrasi';
+
 const W = 1080;
 const H = 1350;
 
@@ -62,16 +64,31 @@ export async function nacrtaj(karta: HTMLElement): Promise<Blob | null> {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 
-  // kartica
+  // tamniji rubovi pozadine
+  const v = ctx.createRadialGradient(W / 2, H * 0.45, H * 0.35, W / 2, H * 0.45, H * 0.85);
+  v.addColorStop(0, 'rgba(0,0,0,0)');
+  v.addColorStop(1, 'rgba(0,0,0,0.38)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, W, H);
+
+  // kartica sa sjenom (debljina kartona)
   const m = 70;
   const cw = W - 2 * m;
   const ch = H - 2 * m;
+  const rub = varijabla(karta, '--k-rub', '#b8892f');
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = 50;
+  ctx.shadowOffsetY = 24;
   ctx.fillStyle = varijabla(karta, '--k-papir', '#fffaf0');
   ctx.fillRect(m, m, cw, ch);
-  ctx.strokeStyle = varijabla(karta, '--k-rub', '#b8892f');
-  ctx.lineWidth = 2;
-  ctx.strokeRect(m, m, cw, ch);
-
+  ctx.restore();
+  // svjetlo na papiru (kao radial-gradient na .karta)
+  const s = ctx.createRadialGradient(m + cw * 0.3, m, 0, m + cw * 0.3, m, cw * 0.9);
+  s.addColorStop(0, 'rgba(255,255,255,0.7)');
+  s.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = s;
+  ctx.fillRect(m, m, cw, ch);
   // slika (object-fit: cover)
   let y = m;
   if (img && img.complete && img.naturalWidth) {
@@ -90,8 +107,41 @@ export async function nacrtaj(karta: HTMLElement): Promise<Blob | null> {
     ctx.drawImage(izvor, (nw - sw) / 2, (nh - sh) / 2, sw, sh, m, m, cw, ih);
     y = m + ih;
   }
+  // rub u foliji: osnovna boja, pa odsjaj i sjena preko nje
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = rub;
+  ctx.strokeRect(m, m, cw, ch);
+  const f = ctx.createLinearGradient(m, m, m + cw, m + ch);
+  f.addColorStop(0, 'rgba(255,255,255,0.45)');
+  f.addColorStop(0.3, 'rgba(255,255,255,0)');
+  f.addColorStop(0.6, 'rgba(0,0,0,0.28)');
+  f.addColorStop(1, 'rgba(255,255,255,0.45)');
+  ctx.strokeStyle = f;
+  ctx.strokeRect(m, m, cw, ch);
+  ctx.lineWidth = 2;
   ctx.strokeStyle = varijabla(karta, '--k-rub2', 'rgba(184,137,47,.45)');
-  ctx.strokeRect(m + 16, m + 16, cw - 32, ch - 32);
+  ctx.strokeRect(m + 18, m + 18, cw - 36, ch - 36);
+
+  // ukrasi u kutovima (lib/ukrasi.ts); uz fotografiju samo donja dva, kao u prikazu
+  const kut = (x: number, yy: number, sx: number, sy: number) => {
+    ctx.save();
+    ctx.translate(x, yy);
+    ctx.scale(sx * 2, sy * 2);
+    ctx.strokeStyle = rub;
+    ctx.fillStyle = rub;
+    ctx.lineWidth = 1.2;
+    ctx.lineCap = 'round';
+    ctx.stroke(new Path2D(KUT_LINIJA));
+    ctx.fill(new Path2D(KUT_ZVIJEZDA));
+    ctx.restore();
+  };
+  const u = 30;
+  if (y === m) {
+    kut(m + u, m + u, 1, 1);
+    kut(m + cw - u, m + u, -1, 1);
+  }
+  kut(m + u, m + ch - u, 1, -1);
+  kut(m + cw - u, m + ch - u, -1, -1);
 
   // tekst: najprije izmjeri cijeli blok, pa ga okomito centriraj u preostalom prostoru kartice
   ctx.textAlign = 'center';
@@ -105,10 +155,10 @@ export async function nacrtaj(karta: HTMLElement): Promise<Blob | null> {
   const potpisPx = Math.round(porukaPx * 1.15);
   const razmak = Math.round(porukaPx * 1.4);
   ctx.font = font(naslovEl, naslovPx);
-  const naslovRedovi = prelomi(ctx, naslov, cw - 140).slice(0, 2);
+  const naslovRedovi = prelomi(ctx, naslov, cw - 180).slice(0, 2);
   ctx.font = font(porukaEl, porukaPx);
   const maxRedaka = imaSliku ? 8 : 12;
-  let redovi = poruka ? prelomi(ctx, poruka, cw - 160) : [];
+  let redovi = poruka ? prelomi(ctx, poruka, cw - 190) : [];
   if (redovi.length > maxRedaka) redovi = [...redovi.slice(0, maxRedaka - 1), redovi[maxRedaka - 1] + ' …'];
 
   const ukrasH = imaSliku ? 0 : 80;
@@ -117,7 +167,7 @@ export async function nacrtaj(karta: HTMLElement): Promise<Blob | null> {
   const potpisH = potpis ? 40 + Math.round(potpisPx * 1.3) : 0;
   const visina = ukrasH + naslovH + porukaH + potpisH;
   const vrh = y + 30;
-  const dno = m + ch - 40;
+  const dno = m + ch - 70;
   let ty = vrh + Math.max(30, (dno - vrh - visina) / 2);
 
   if (!imaSliku) {

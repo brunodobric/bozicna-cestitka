@@ -9,8 +9,10 @@ interface Props {
   title: string;
   description?: string;
   noindex?: boolean;
+  klasa?: string; // dodatna klasa na <body> (početna: noćna scena)
+  themeColor?: string;
 }
-const { title, description, noindex = false } = Astro.props;
+const { title, description, noindex = false, klasa = '', themeColor = '#143627' } = Astro.props;
 const origin = siteOrigin(Astro.url);
 const path = Astro.url.pathname;
 const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
@@ -21,7 +23,7 @@ const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#143627" />
+    <meta name="theme-color" content={themeColor} />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
@@ -35,7 +37,7 @@ const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
     <meta name="twitter:card" content="summary_large_image" />
     <ThemeFonts families={['garamond', 'garamond-italic', 'jakarta']} preload="garamond" />
   </head>
-  <body class="platform">
+  <body class:list={['platform', klasa]}>
     <header class="p-header">
       <a class="p-logo" href="/">{SITE_NAME}</a>
     </header>
