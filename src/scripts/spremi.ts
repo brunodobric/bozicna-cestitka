@@ -76,10 +76,18 @@ export async function nacrtaj(karta: HTMLElement): Promise<Blob | null> {
   let y = m;
   if (img && img.complete && img.naturalWidth) {
     const ih = Math.round(cw * 0.62);
-    const r = Math.max(cw / img.naturalWidth, ih / img.naturalHeight);
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
+    // Slika se najprije cijela iscrta na pomoćni canvas, pa se iz njega reže dio (object-fit: cover).
+    // Safari na iPhoneu krivo reže izravno iz SVG slike (izrezani dio ispadne premalen u kutu).
+    const izvor = document.createElement('canvas');
+    izvor.width = nw;
+    izvor.height = nh;
+    izvor.getContext('2d')?.drawImage(img, 0, 0, nw, nh);
+    const r = Math.max(cw / nw, ih / nh);
     const sw = cw / r;
     const sh = ih / r;
-    ctx.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, m, m, cw, ih);
+    ctx.drawImage(izvor, (nw - sw) / 2, (nh - sh) / 2, sw, sh, m, m, cw, ih);
     y = m + ih;
   }
   ctx.strokeStyle = varijabla(karta, '--k-rub2', 'rgba(184,137,47,.45)');

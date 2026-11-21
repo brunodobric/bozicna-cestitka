@@ -1,14 +1,17 @@
 /* Stranice platforme (početna, uređivač). Boje su iz božićne palete klasične teme. */
 :root {
-  --p-bg: #faf7f1;
+  /* Paleta (Bruno, 21. 11. 2026.): crvena #A61C1C, tamnozelena #143627, zlatna #D4AF37, krem #FAF6F0 */
+  --p-bg: #faf6f0;
   --p-surface: #ffffff;
-  --p-text: #221d19;
-  --p-muted: #6a5f55;
-  --p-primary: #8a1c24;
-  --p-primary-hover: #a3262f;
-  --p-green: #0f2e22;
-  --p-gold: #b8892f;
-  --p-border: #e6ddd0;
+  --p-text: #143627;
+  --p-muted: #4d5f55;
+  --p-primary: #a61c1c; /* naslovi, logo, okviri */
+  --p-primary-dark: #8b0000;
+  --p-green: #143627;
+  --p-green-2: #1b4332;
+  --p-gold: #d4af37; /* gumbi, zvjezdice */
+  --p-gold-hover: #e0bf55;
+  --p-border: #e8dcc4;
   --p-font-head: 'EB Garamond', 'Times New Roman', serif;
   --p-font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
@@ -59,6 +62,9 @@ body.platform {
   color: var(--p-muted);
   border-top: 1px solid var(--p-border);
 }
+.p-header {
+  border-bottom: 1px solid var(--p-border);
+}
 .p-footer nav {
   display: flex;
   gap: 1rem;
@@ -68,6 +74,7 @@ body.platform {
 }
 h1,
 h2 {
+  color: var(--p-primary);
   font-family: var(--p-font-head);
   font-weight: 400;
   line-height: 1.15;
@@ -89,26 +96,27 @@ p {
   min-height: 48px;
   padding: 0.75rem 1.5rem;
   border-radius: 999px;
-  border: 1px solid var(--p-primary);
-  background: var(--p-primary);
-  color: #fff;
+  border: 1px solid var(--p-gold);
+  background: var(--p-gold);
+  color: var(--p-green);
   font: 600 1rem/1 var(--p-font-body);
   text-decoration: none;
   cursor: pointer;
 }
 .p-btn:hover {
-  background: var(--p-primary-hover);
+  background: var(--p-gold-hover);
 }
 .p-btn:focus-visible {
-  outline: 2px solid var(--p-gold);
+  outline: 2px solid var(--p-primary);
   outline-offset: 3px;
 }
 .p-btn--ghost {
   background: transparent;
-  color: var(--p-primary);
+  color: var(--p-green);
+  border-color: var(--p-green);
 }
 .p-btn--ghost:hover {
-  background: #f6ecea;
+  background: #efe7d6;
 }
 .p-muted {
   color: var(--p-muted);
@@ -169,6 +177,7 @@ p {
 .h-koraci li {
   background: var(--p-surface);
   border: 1px solid var(--p-border);
+  border-top: 3px solid var(--p-green-2);
   border-radius: 6px;
   padding: 1.25rem;
   counter-increment: korak;
@@ -177,7 +186,7 @@ p {
   content: counter(korak);
   display: block;
   font: italic 500 1.75rem/1 var(--p-font-head);
-  color: var(--p-gold);
+  color: var(--p-primary);
   margin-bottom: 0.5rem;
 }
 .h-koraci h3 {

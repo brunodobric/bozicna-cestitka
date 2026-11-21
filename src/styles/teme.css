@@ -3,38 +3,38 @@
 
 /* ---------- Klasična: crvena kuverta, zlatni pečat, tamnozelena pozadina (prototip) ---------- */
 .inv[data-tema='klasicna'] {
-  --bg: #0f2e22;
-  --bg-glow: #1a4a37;
-  --surface: #fffaf0;
+  --bg: #143627;
+  --bg-glow: #1b4332;
+  --surface: #faf6f0;
   --text: #2a211c;
   --muted: #7a6a58;
-  --accent: #b8892f;
+  --accent: #d4af37;
   --accent-ink: #8a6420;
   --border: #e6d9bf;
-  --focus: #e8c77a;
+  --focus: #d4af37;
   --font-head: 'EB Garamond', 'Times New Roman', serif;
   --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
   --head-weight: 400;
-  --na-pozadini: #f1e3c4; /* uputa, gumb "Preskoči", sporedni gumbi */
+  --na-pozadini: #faf6f0; /* uputa, gumb "Preskoči", sporedni gumbi */
   --na-pozadini-tiho: #cdbf9f;
-  --gumb-bg: #c99a3e;
-  --gumb-tekst: #2a1a08;
+  --gumb-bg: #d4af37;
+  --gumb-tekst: #143627;
 
-  --env-back: #6e1218;
-  --env-front: #a31f28;
-  --env-flap: #b2242d;
-  --env-line: rgba(240, 205, 130, 0.55);
-  --env-liner: #1d5a3c;
-  --env-seal: #c99a3e;
-  --env-seal-ink: #5b1015;
-  --env-liner-stripe: #c99a3e;
+  --env-back: #8b0000;
+  --env-front: #a61c1c;
+  --env-flap: #b42424;
+  --env-line: rgba(212, 175, 55, 0.6);
+  --env-liner: #1b4332;
+  --env-seal: #d4af37;
+  --env-seal-ink: #8b0000;
+  --env-liner-stripe: #d4af37;
 
-  --k-papir: #fffaf0;
+  --k-papir: #faf6f0;
   --k-tekst: #2a211c;
-  --k-naslov: #8a1c24;
+  --k-naslov: #a61c1c;
   --k-potpis: #8a6420;
-  --k-rub: #b8892f;
-  --k-rub2: rgba(184, 137, 47, 0.45);
+  --k-rub: #d4af37;
+  --k-rub2: rgba(212, 175, 55, 0.5);
   --k-font-naslov: 'EB Garamond', 'Times New Roman', serif;
   --k-font-tekst: 'EB Garamond', 'Times New Roman', serif;
   --k-stil-naslov: italic;

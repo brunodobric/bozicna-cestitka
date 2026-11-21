@@ -24,7 +24,7 @@ export const TEME: Tema[] = [
     fonts: ['garamond', 'garamond-italic', 'jakarta'],
     preload: 'garamond-italic',
     pecat: '★',
-    bg: '#0f2e22',
+    bg: '#143627',
   },
   {
     key: 'zimska',

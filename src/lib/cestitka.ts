@@ -41,7 +41,7 @@ export const PRIMJERI: Record<TemaKey, Omit<JavnaCestitka, 'slika'> & { slika: s
     od: 'Marko',
     naslov: 'Sretan Božić',
     poruka: 'Draga Ana,\nželim ti mirne blagdane, puno topline i dobrih ljudi oko sebe.\nVidimo se za Novu godinu.',
-    slika: '/primjeri/klasicna.svg',
+    slika: '/primjeri/klasicna.jpg',
   },
   zimska: {
     tema: 'zimska',
