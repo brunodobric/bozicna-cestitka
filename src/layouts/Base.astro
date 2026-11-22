@@ -11,18 +11,21 @@ interface Props {
   noindex?: boolean;
   klasa?: string; // dodatna klasa na <body> (početna: noćna scena)
   themeColor?: string;
+  // boja ispod stranice (html): iPhone je pokazuje iznad i ispod stranice i kod povlačenja preko ruba
+  pozadina?: string;
 }
-const { title, description, noindex = false, klasa = '', themeColor = '#143627' } = Astro.props;
+const { title, description, noindex = false, klasa = '', pozadina = '#faf6f0' } = Astro.props;
+const themeColor = Astro.props.themeColor ?? pozadina;
 const origin = siteOrigin(Astro.url);
 const path = Astro.url.pathname;
 const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
 ---
 
 <!doctype html>
-<html lang="hr">
+<html lang="hr" style={`background-color:${pozadina}`}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
