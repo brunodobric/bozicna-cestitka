@@ -1,3 +1,7 @@
+# Fontove u /_astro/ smije učitati i Stripeov okvir na stranici plaćanja (polja kartice u fontu stranice).
+/_astro/*.woff2
+  Access-Control-Allow-Origin: *
+
 # Fontovi i skripte u /_astro/ imaju hash u imenu, pa se smiju dugo čuvati.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable

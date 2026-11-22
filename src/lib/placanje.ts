@@ -1,83 +1,137 @@
-// Naplata čestitke preko Stripe Checkouta (Stripeova stranica), bez Stripe biblioteke: fetch i Web Crypto.
+// Naplata čestitke preko Stripe Checkouta (polja za karticu na našoj stranici), bez Stripe biblioteke: fetch i Web Crypto.
 // Prema Kuvertinom src/lib/placanje.ts; umjesto usluga u metapodacima ide cestitka_id.
 //
 // Varijable u Cloudflareu (Worker → Settings → Variables and Secrets):
 //   STRIPE_SECRET_KEY      sk_test_... ili sk_live_...
 //   STRIPE_WEBHOOK_SECRET  whsec_... (Stripe → Developers → Webhooks, adresa /stripe/webhook)
+//   STRIPE_PUBLISHABLE_KEY pk_test_... ili pk_live_... (polja za karticu na našoj stranici; bez njega Stripeova stranica)
 //   PLACANJE_SECRET        tajna iz private_settings (ispiše je migracija 005)
 //   PLACANJE_TESTNO        "da" dopušta plaćanje testnim ključem. Bez toga testni ključ ne radi,
 //                          da nitko ne dobije čestitku testnom karticom.
-import { env } from 'cloudflare:workers';
-import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { ponudaZaKomada, type Ponuda } from './cijena';
+import { env } from "cloudflare:workers";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { ponudaZaKomada, type Ponuda } from "./cijena";
 
 const read = (name: string) => {
   const v = (env as unknown as Record<string, unknown>)[name];
-  return typeof v === 'string' ? v.trim() : '';
+  return typeof v === "string" ? v.trim() : "";
 };
 
-export const tajnaPlacanja = () => read('PLACANJE_SECRET');
+export const tajnaPlacanja = () => read("PLACANJE_SECRET");
 
 // Može li se sada platiti. Bez ključeva gumb za plaćanje se ne prikazuje.
 export function placanjeDostupno(): boolean {
-  const key = read('STRIPE_SECRET_KEY');
+  const key = read("STRIPE_SECRET_KEY");
   if (!key || !tajnaPlacanja()) return false;
-  if (key.startsWith('sk_live_') || key.startsWith('rk_live_')) return true;
-  return (key.startsWith('sk_test_') || key.startsWith('rk_test_')) && read('PLACANJE_TESTNO').toLowerCase() === 'da';
+  if (key.startsWith("sk_live_") || key.startsWith("rk_live_")) return true;
+  return (
+    (key.startsWith("sk_test_") || key.startsWith("rk_test_")) &&
+    read("PLACANJE_TESTNO").toLowerCase() === "da"
+  );
 }
 
-export const testnoPlacanje = () => /^(sk|rk)_test_/.test(read('STRIPE_SECRET_KEY'));
+export const testnoPlacanje = () =>
+  /^(sk|rk)_test_/.test(read("STRIPE_SECRET_KEY"));
 
 // Verzija Stripe API-ja je zakucana (ista kao u Kuverti), da se ponašanje ne mijenja s novim izdanjima.
-const STRIPE_VERSION = '2026-10-28.endive';
+const STRIPE_VERSION = "2026-10-28.endive";
 
-async function stripe(path: string, body?: URLSearchParams): Promise<Record<string, unknown>> {
+async function stripe(
+  path: string,
+  body?: URLSearchParams,
+): Promise<Record<string, unknown>> {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
-    method: body ? 'POST' : 'GET',
+    method: body ? "POST" : "GET",
     headers: {
-      authorization: `Bearer ${read('STRIPE_SECRET_KEY')}`,
-      'stripe-version': STRIPE_VERSION,
-      ...(body ? { 'content-type': 'application/x-www-form-urlencoded' } : {}),
+      authorization: `Bearer ${read("STRIPE_SECRET_KEY")}`,
+      "stripe-version": STRIPE_VERSION,
+      ...(body ? { "content-type": "application/x-www-form-urlencoded" } : {}),
     },
     body,
     signal: AbortSignal.timeout(10000),
   });
   const data = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as { message?: string } | undefined)?.message ?? `HTTP ${res.status}`;
+    const msg =
+      (data.error as { message?: string } | undefined)?.message ??
+      `HTTP ${res.status}`;
     throw new Error(`Stripe: ${msg}`);
   }
   return data;
 }
 
-// Otvara Stripe Checkout za čestitku (jedna ili paket) i vraća adresu na koju šaljemo kupca.
-// Stripe sam traži e-mail (za potvrdu uplate), a Apple Pay i Google Pay nudi kad su uključeni u Stripeu.
-export async function otvoriNaplatu(user: User, cestitkaId: string, p: Ponuda, origin: string): Promise<string> {
+// Zajednički podaci Checkout sesije: stavka, metapodaci za otključavanje i rok od sat vremena.
+function osnovaSesije(
+  user: User,
+  cestitkaId: string,
+  p: Ponuda,
+): URLSearchParams {
   const b = new URLSearchParams();
-  b.set('mode', 'payment');
-  b.set('locale', 'hr');
-  b.set('client_reference_id', cestitkaId);
-  b.set('line_items[0][quantity]', '1');
-  b.set('line_items[0][price_data][currency]', 'eur');
-  b.set('line_items[0][price_data][unit_amount]', String(p.centi));
-  b.set('line_items[0][price_data][product_data][name]', p.naziv);
+  b.set("mode", "payment");
+  b.set("client_reference_id", cestitkaId);
+  b.set("line_items[0][quantity]", "1");
+  b.set("line_items[0][price_data][currency]", "eur");
+  b.set("line_items[0][price_data][unit_amount]", String(p.centi));
+  b.set("line_items[0][price_data][product_data][name]", p.naziv);
   b.set(
-    'line_items[0][price_data][product_data][description]',
+    "line_items[0][price_data][product_data][description]",
     p.komada > 1
       ? `Prva čestitka se otključa odmah, a preostale (${p.komada - 1}) koristite na istom uređaju. Svaka vrijedi 30 dana.`
-      : 'Čestitka vrijedi 30 dana od uplate.',
+      : "Čestitka vrijedi 30 dana od uplate.",
   );
-  b.set('metadata[cestitka_id]', cestitkaId);
-  b.set('metadata[owner_id]', user.id);
-  b.set('metadata[komada]', String(p.komada));
-  b.set('payment_intent_data[metadata][cestitka_id]', cestitkaId);
-  b.set('success_url', `${origin}/napravi/gotovo/${cestitkaId}?session_id={CHECKOUT_SESSION_ID}`);
-  b.set('cancel_url', `${origin}/napravi/pregled/${cestitkaId}`);
-  // Stranica plaćanja vrijedi sat vremena (Stripe inače drži 24 sata).
-  b.set('expires_at', String(Math.floor(Date.now() / 1000) + 60 * 60));
-  const s = await stripe('checkout/sessions', b);
-  if (typeof s.url !== 'string') throw new Error('Stripe: nema adrese naplate.');
+  b.set("metadata[cestitka_id]", cestitkaId);
+  b.set("metadata[owner_id]", user.id);
+  b.set("metadata[komada]", String(p.komada));
+  b.set("payment_intent_data[metadata][cestitka_id]", cestitkaId);
+  // Sesija vrijedi sat vremena (Stripe inače drži 24 sata).
+  b.set("expires_at", String(Math.floor(Date.now() / 1000) + 60 * 60));
+  return b;
+}
+
+const adresaGotovo = (origin: string, cestitkaId: string) =>
+  `${origin}/napravi/gotovo/${cestitkaId}?session_id={CHECKOUT_SESSION_ID}`;
+
+// Rezerva: Stripeova stranica plaćanja (kad se polja na našoj stranici ne učitaju). Vraća adresu za preusmjeravanje.
+export async function otvoriNaplatu(
+  user: User,
+  cestitkaId: string,
+  p: Ponuda,
+  origin: string,
+): Promise<string> {
+  const b = osnovaSesije(user, cestitkaId, p);
+  b.set("locale", "hr");
+  b.set("success_url", adresaGotovo(origin, cestitkaId));
+  b.set("cancel_url", `${origin}/napravi/placanje/${cestitkaId}`);
+  const s = await stripe("checkout/sessions", b);
+  if (typeof s.url !== "string")
+    throw new Error("Stripe: nema adrese naplate.");
   return s.url;
+}
+
+// Plaćanje na našoj stranici (Stripe Payment Element uz Checkout sesiju, ui_mode "elements", kao u Kuverti).
+// Vraća client_secret za Stripe.js. Nakon plaćanja Stripe vraća kupca na /napravi/gotovo/<id>.
+export async function otvoriUgradenuNaplatu(
+  user: User,
+  cestitkaId: string,
+  p: Ponuda,
+  origin: string,
+): Promise<string> {
+  const b = osnovaSesije(user, cestitkaId, p);
+  b.set("ui_mode", "elements");
+  b.set("return_url", adresaGotovo(origin, cestitkaId));
+  const s = await stripe("checkout/sessions", b);
+  if (typeof s.client_secret !== "string")
+    throw new Error("Stripe: nema client_secret.");
+  return s.client_secret;
+}
+
+// Javni ključ za Stripe.js (STRIPE_PUBLISHABLE_KEY). Vraća ga samo ako je istog načina (test/live) kao tajni ključ.
+export function stripeJavniKljuc(): string {
+  const pk = read("STRIPE_PUBLISHABLE_KEY");
+  const sk = read("STRIPE_SECRET_KEY");
+  if (pk.startsWith("pk_test_") && /^(sk|rk)_test_/.test(sk)) return pk;
+  if (pk.startsWith("pk_live_") && /^(sk|rk)_live_/.test(sk)) return pk;
+  return "";
 }
 
 type Session = {
@@ -94,17 +148,17 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // Upisuje plaćenu sesiju i otključava čestitku. Isto se smije pozvati više puta (webhook i povratak).
 async function potvrdi(supabase: SupabaseClient, s: Session): Promise<boolean> {
-  if (s.payment_status !== 'paid') return false;
-  const cestitka = s.metadata?.cestitka_id ?? '';
-  const p = ponudaZaKomada(s.metadata?.komada ?? '1');
+  if (s.payment_status !== "paid") return false;
+  const cestitka = s.metadata?.cestitka_id ?? "";
+  const p = ponudaZaKomada(s.metadata?.komada ?? "1");
   if (!UUID.test(cestitka) || !p) return false;
-  const { error } = await supabase.rpc('potvrdi_uplatu_cestitke', {
+  const { error } = await supabase.rpc("potvrdi_uplatu_cestitke", {
     p_secret: tajnaPlacanja(),
     p_session_id: s.id,
     p_cestitka: cestitka,
     p_iznos_centi: s.amount_total ?? 0,
-    p_valuta: s.currency ?? 'eur',
-    p_email: s.customer_details?.email ?? '',
+    p_valuta: s.currency ?? "eur",
+    p_email: s.customer_details?.email ?? "",
     p_testni: s.livemode === false,
     p_komada: p.komada,
   });
@@ -114,36 +168,77 @@ async function potvrdi(supabase: SupabaseClient, s: Session): Promise<boolean> {
 
 // Povratak s naplate: sesiju provjeravamo izravno kod Stripea, pa kupac ne čeka webhook.
 // Vrijedi samo za sesiju te čestitke i tog kupca.
-export async function potvrdiPovratak(supabase: SupabaseClient, user: User, cestitkaId: string, sessionId: string): Promise<boolean> {
+export async function potvrdiPovratak(
+  supabase: SupabaseClient,
+  user: User,
+  cestitkaId: string,
+  sessionId: string,
+): Promise<boolean> {
   if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return false;
-  const s = (await stripe(`checkout/sessions/${sessionId}`)) as unknown as Session;
-  if (s.metadata?.cestitka_id !== cestitkaId || s.metadata?.owner_id !== user.id) return false;
+  const s = (await stripe(
+    `checkout/sessions/${sessionId}`,
+  )) as unknown as Session;
+  if (
+    s.metadata?.cestitka_id !== cestitkaId ||
+    s.metadata?.owner_id !== user.id
+  )
+    return false;
   return await potvrdi(supabase, s);
 }
 
-const hex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map((x) => x.toString(16).padStart(2, '0')).join('');
+const hex = (buf: ArrayBuffer) =>
+  [...new Uint8Array(buf)].map((x) => x.toString(16).padStart(2, "0")).join("");
 
 // Provjera potpisa Stripe webhooka (zaglavlje Stripe-Signature: t=...,v1=...).
-export async function provjeriPotpis(payload: string, header: string, now = Date.now()): Promise<boolean> {
-  const secret = read('STRIPE_WEBHOOK_SECRET');
+export async function provjeriPotpis(
+  payload: string,
+  header: string,
+  now = Date.now(),
+): Promise<boolean> {
+  const secret = read("STRIPE_WEBHOOK_SECRET");
   if (!secret || !header) return false;
-  const parts = header.split(',').map((p) => p.split('='));
-  const t = parts.find(([k]) => k === 't')?.[1] ?? '';
-  const sigs = parts.filter(([k]) => k === 'v1').map(([, v]) => v);
-  if (!/^\d+$/.test(t) || !sigs.length || Math.abs(now / 1000 - Number(t)) > 300) return false;
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const expected = hex(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${t}.${payload}`)));
+  const parts = header.split(",").map((p) => p.split("="));
+  const t = parts.find(([k]) => k === "t")?.[1] ?? "";
+  const sigs = parts.filter(([k]) => k === "v1").map(([, v]) => v);
+  if (
+    !/^\d+$/.test(t) ||
+    !sigs.length ||
+    Math.abs(now / 1000 - Number(t)) > 300
+  )
+    return false;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const expected = hex(
+    await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(`${t}.${payload}`),
+    ),
+  );
   return sigs.some((s) => {
     if (s.length !== expected.length) return false;
     let diff = 0;
-    for (let i = 0; i < s.length; i++) diff |= s.charCodeAt(i) ^ expected.charCodeAt(i);
+    for (let i = 0; i < s.length; i++)
+      diff |= s.charCodeAt(i) ^ expected.charCodeAt(i);
     return diff === 0;
   });
 }
 
 // Događaj iz webhooka: dovršena (ili naknadno potvrđena) naplata.
-export async function obradiDogadaj(supabase: SupabaseClient, event: { type?: string; data?: { object?: unknown } }): Promise<void> {
-  if (event.type !== 'checkout.session.completed' && event.type !== 'checkout.session.async_payment_succeeded') return;
+export async function obradiDogadaj(
+  supabase: SupabaseClient,
+  event: { type?: string; data?: { object?: unknown } },
+): Promise<void> {
+  if (
+    event.type !== "checkout.session.completed" &&
+    event.type !== "checkout.session.async_payment_succeeded"
+  )
+    return;
   const s = event.data?.object as Session | undefined;
   if (s?.id) await potvrdi(supabase, s);
 }
