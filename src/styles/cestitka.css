@@ -339,6 +339,17 @@ html:not(.env) .karta__list.iza:not(.odlazi) {
   }
 }
 .karta__list.dolazi {
+  animation: dolazi 0.95s linear;
+}
+html:not(.env) .karta__list.odlazi {
+  animation: odlazi 0.95s linear;
+}
+@keyframes smjesti {
+  from {
+    transform: none;
+  }
+}
+.karta__list.dolazi {
   animation: dolazi 0.75s cubic-bezier(0.45, 0.05, 0.25, 1);
 }
 html:not(.env) .karta__list.odlazi {
@@ -349,39 +360,31 @@ html:not(.env) .karta__list.odlazi {
     transform: none;
   }
 }
+/* Zamjena kartica: prva polovica se izvlači (usporava prema kraju), druga se vraća na mjesto.
+   Koja je kartica gore mijenja skripta točno na prijelazu polovica (z-index se ne animira glatko). */
 @keyframes dolazi {
   0% {
-    z-index: 1;
     transform: var(--t-iza);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.15, 1);
   }
-  45% {
-    z-index: 1;
-    transform: translate(72%, -2%) rotate(9deg);
-  }
-  55% {
-    z-index: 3;
-    transform: translate(70%, -2%) rotate(8deg);
+  48% {
+    transform: translate(64%, -3%) rotate(8deg) scale(1.03);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
   }
   100% {
-    z-index: 3;
     transform: var(--t-naprijed);
   }
 }
 @keyframes odlazi {
   0% {
-    z-index: 3;
     transform: var(--t-naprijed);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.15, 1);
   }
-  45% {
-    z-index: 3;
-    transform: translate(-20%, 3%) rotate(-7deg);
-  }
-  55% {
-    z-index: 1;
-    transform: translate(-19%, 3%) rotate(-6deg);
+  48% {
+    transform: translate(-16%, 3%) rotate(-6deg) scale(0.96);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
   }
   100% {
-    z-index: 1;
     transform: var(--t-iza);
   }
 }
