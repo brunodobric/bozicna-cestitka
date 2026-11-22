@@ -10,12 +10,6 @@ import Snijeg from '../components/Snijeg.astro';
 import { TEME } from '../lib/teme';
 import { SITE_DESCRIPTION, SITE_NAME } from '../lib/seo';
 
-const UZORCI: Record<string, { bg: string; front: string; flap: string; seal: string }> = {
-  klasicna: { bg: '#143627', front: '#a61c1c', flap: '#b42424', seal: '#d4af37' },
-  zimska: { bg: '#14213d', front: '#f3f6fa', flap: '#fbfcfe', seal: '#a9b8cc' },
-  moderna: { bg: '#f6f3ee', front: '#ffffff', flap: '#ffffff', seal: '#b3262e' },
-};
-
 // Lampice na žici: lukovi široki 120, po tri žaruljice na svakom.
 const BOJE = ['#f5cf58', '#e0483f', '#faf6f0', '#3fa66e'];
 const lampice: { x: number; y: number; boja: string; d: string }[] = [];
@@ -108,23 +102,19 @@ const zvijezde = Array.from({ length: 46 }, () => ({
 
   <section class="n-kuverte">
     <div class="n-wrap">
-      <h2 class="n-naslov n-naslov--svijetli">Kuverte</h2>
+      <h2 class="n-naslov n-naslov--svijetli">Devet čestitki</h2>
+      <p class="n-kuverte__uvod">Svaka dolazi u svojoj kuverti. Dodirnite čestitku i otvorite primjer.</p>
       <div class="n-teme">
         {
-          TEME.map((t) => {
-            const u = UZORCI[t.key];
-            return (
-              <a class="n-tema" href={`/primjer/${t.key}`}>
-                <span class="n-tema__uzorak" style={`--tlo:${u.bg}`}>
-                  <span class="n-kuverta" style={`--front:${u.front};--flap:${u.flap};--seal:${u.seal}`} />
-                </span>
-                <span class="n-tema__tekst">
-                  <strong>{t.naziv}</strong>
-                  <span>{t.opis}</span>
-                </span>
-              </a>
-            );
-          })
+          TEME.map((t) => (
+            <a class="n-tema" href={`/primjer/${t.key}`}>
+              <img src={`/primjeri/${t.key}.jpg`} alt={`Primjer čestitke: ${t.naziv}`} width="540" height="675" loading="lazy" decoding="async" />
+              <span class="n-tema__tekst">
+                <strong>{t.naziv}</strong>
+                <span>{t.opis}</span>
+              </span>
+            </a>
+          ))
         }
       </div>
       <p class="n-kuverte__cta"><a class="p-btn" href="/napravi">Napravi čestitku</a></p>

@@ -21,8 +21,8 @@ const slika = c ? javniUrlSlike(Astro.locals.supabaseUrl, c.slika) : null;
 {
   c ? (
     <CestitkaLayout tema={info.key} envelope={token}>
-      <Envelope storageKey={token!} naslov={c.naslov} za={c.za} pecat={info.pecat} />
-      <Karta naslov={c.naslov} poruka={c.poruka} od={c.od} slika={slika} />
+      <Envelope storageKey={token!} za={c.za} pecat={info.pecat} deco={info.deco} />
+      <Karta tema={info.key} naslov={c.naslov} poruka={c.poruka} od={c.od} slika={slika} />
     </CestitkaLayout>
   ) : (
     <CestitkaLayout tema="klasicna">

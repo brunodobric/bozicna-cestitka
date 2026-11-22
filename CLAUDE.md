@@ -32,9 +32,13 @@ npm run build
 - `src/pages/c/[token].astro`: čestitka za primatelja (RPC `javna_cestitka`; robotima za pregled poveznice ne otvara čestitku).
 - `src/pages/index.astro` + `src/styles/pocetna.css` + `src/components/NocnaScena.astro`: početna kao božićna noć (lampice, snijeg, SVG scena s drvcima, svjetiljkama, snjegovićem i saonicama). Font naslova je Great Vibes (`@fontsource/great-vibes`), samo na početnoj.
 - `src/pages/primjer/[tema].astro`: primjer svake teme, radi bez baze.
-- `src/components/Envelope.astro`, `EnvelopeHead.astro`: kuverta iz Kuverte; CSS u `src/styles/kuverta.css` (doslovno iz Kuvertinog `invitation.css`); bogatiji izgled (tekstura papira, sjene, voštani pečat, grančica) je u `src/styles/cestitka.css`.
-- `src/components/Karta.astro` + `src/scripts/spremi.ts`: čestitka i "Spremi kao sliku" (crtanje na canvas). **Promjena rasporeda kartice traži istu promjenu u `spremi.ts`.** Ukras u kutovima je u `src/lib/ukrasi.ts` i koriste ga oba.
-- `src/lib/teme.ts` + `src/styles/teme.css`: teme `klasicna`, `zimska`, `moderna` (ključevi su u bazi, ne mijenjati).
+- `src/lib/teme.ts`: **devet dizajna** (`klasicna`, `zimska`, `moderna`, `imela`, `andeo`, `djed`, `sob`, `drvce`, `vijenac`; ključevi su u bazi, ne mijenjati). Svaki ima boje stranice i kuverte (CSS varijable, postavlja ih `CestitkaLayout`), ukras ispod pečata i opis čestitke: fontove, boje i okvir u koji se slaže tekst.
+- `src/lib/ilustracije.ts` + `src/pages/ilustracije/[tema].svg.ts`: ilustracije čestitki (SVG 1080 × 1350 nacrtan kodom, bez teksta).
+- `src/scripts/cestitka.ts`: **čestitka je jedna slika**. Crta se na canvas (ilustracija, po želji fotografija, pa naslov, poruka i potpis koji se smanjuju dok ne stanu u okvir). Ista slika ide na karticu u kuverti, na ekran i u "Spremi kao sliku". Promjena ilustracije traži provjeru okvira za tekst u `teme.ts`.
+- `src/components/Envelope.astro`, `EnvelopeHead.astro`: kuverta iz Kuverte; CSS u `src/styles/kuverta.css` (doslovno iz Kuvertinog `invitation.css`), dopune u `src/styles/cestitka.css` (tekstura, pečat, grančica, čestitka koja izlazi iz kuverte i dolazi na svoje mjesto).
+- `src/components/Karta.astro`: gotova čestitka (`<img>`) i gumbi.
+- `public/primjeri/<tema>.jpg`: sličice za početnu. Nakon promjene dizajna treba ih ponovno snimiti (snimka elementa `#karta` na `/primjer/<tema>`).
+- U razvoju `/primjer/<tema>?proba=dugo` i `?proba=foto` pokazuju dugu poruku i čestitku s fotografijom.
 - `src/middleware.ts`: Supabase klijent po zahtjevu, CSP, `noindex` i `no-store` na `/c/`, `/napravi`, `/uredi`.
 
 ## Baza
@@ -42,6 +46,7 @@ npm run build
 - Migracije su u `supabase/migrations/NNN_ime.sql`. Nikad ne pretpostavljaj da je migracija pokrenuta.
 - Sigurnost je u bazi: RLS na tablicama, primatelj i uplata idu kroz `SECURITY DEFINER` funkcije, `service_role` se ne koristi.
 - Okidač `cestitka_guard`: kupac ne može sam uključiti `placeno`, mijenjati tokene ni `brisanje_nakon`; funkcije baze to rade uz oznaku `cestitka.sustav`.
+- `002_devet_dizajna.sql` proširuje popis dopuštenih tema na devet. **Bruno je mora pokrenuti u SQL Editoru prije nego uređivač počne spremati nove dizajne** (primjeri rade i bez nje).
 - `001_cestitke.sql` je provjerena na lokalnom Postgresu 16 sa zamjenskim auth/storage shemama (plaćanje, krivi ključ, RLS između kupaca, prvo otvaranje, prijenos tajnim linkom, istek).
 
 ## Dizajn i provjera
@@ -58,5 +63,6 @@ npm run build
 ## Stanje
 
 Gotovo (21. 11. 2026.): koraci 1 do 4 plana (kostur, tri teme, javna čestitka, spremanje slike), objavljeno na workers.dev.
+Gotovo (22. 11. 2026.): božićna početna, devet dizajna čestitki, čestitka kao jedna slika u kuverti, na ekranu i u galeriji.
 
-**Otvoreno / čeka Brunu:** CAPTCHA (Turnstile) u Supabase Authu, `placanje_secret` (korak 7), odluke iz odjeljka 9 (cijena, trajanje čestitke, ime i domena, obavijest kupcu), proba na pravom iPhoneu i Androidu.
+**Otvoreno / čeka Brunu:** migracija `002_devet_dizajna.sql`, CAPTCHA (Turnstile) u Supabase Authu, `placanje_secret` (korak 7), odluke iz odjeljka 9 (cijena, trajanje čestitke, ime i domena, obavijest kupcu), proba na pravom iPhoneu i Androidu.

@@ -15,6 +15,17 @@ import jakartaExt from '@fontsource-variable/plus-jakarta-sans/files/plus-jakart
 import montserratLatin from '@fontsource-variable/montserrat/files/montserrat-latin-wght-normal.woff2?url';
 import montserratExt from '@fontsource-variable/montserrat/files/montserrat-latin-ext-wght-normal.woff2?url';
 
+import gvLatin from '@fontsource/great-vibes/files/great-vibes-latin-400-normal.woff2?url';
+import gvExt from '@fontsource/great-vibes/files/great-vibes-latin-ext-400-normal.woff2?url';
+import pinLatin from '@fontsource/pinyon-script/files/pinyon-script-latin-400-normal.woff2?url';
+import pinExt from '@fontsource/pinyon-script/files/pinyon-script-latin-ext-400-normal.woff2?url';
+import parLatin from '@fontsource/parisienne/files/parisienne-latin-400-normal.woff2?url';
+import parExt from '@fontsource/parisienne/files/parisienne-latin-ext-400-normal.woff2?url';
+import berLatin from '@fontsource/berkshire-swash/files/berkshire-swash-latin-400-normal.woff2?url';
+import berExt from '@fontsource/berkshire-swash/files/berkshire-swash-latin-ext-400-normal.woff2?url';
+import pfLatin from '@fontsource/playfair-display/files/playfair-display-latin-400-italic.woff2?url';
+import pfExt from '@fontsource/playfair-display/files/playfair-display-latin-ext-400-italic.woff2?url';
+
 interface Props {
   families: FontFamily[];
   preload?: FontFamily;
@@ -32,6 +43,12 @@ const FACES: Record<FontFamily, Face> = {
   'garamond-italic': { family: 'EB Garamond', style: 'italic', weight: '400 800', latin: garamondItLatin, ext: garamondItExt },
   jakarta: { family: 'Plus Jakarta Sans', style: 'normal', weight: '200 800', latin: jakartaLatin, ext: jakartaExt },
   montserrat: { family: 'Montserrat', style: 'normal', weight: '100 900', latin: montserratLatin, ext: montserratExt },
+  // ukrasna pisma za naslov i potpis čestitke
+  'great-vibes': { family: 'Great Vibes', style: 'normal', weight: '400', latin: gvLatin, ext: gvExt },
+  pinyon: { family: 'Pinyon Script', style: 'normal', weight: '400', latin: pinLatin, ext: pinExt },
+  parisienne: { family: 'Parisienne', style: 'normal', weight: '400', latin: parLatin, ext: parExt },
+  berkshire: { family: 'Berkshire Swash', style: 'normal', weight: '400', latin: berLatin, ext: berExt },
+  'playfair-italic': { family: 'Playfair Display', style: 'italic', weight: '400', latin: pfLatin, ext: pfExt },
 };
 
 const unique = [...new Set(families)];

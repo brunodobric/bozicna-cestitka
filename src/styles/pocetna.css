@@ -282,94 +282,67 @@ body.pocetna .p-btn:focus-visible {
   background: linear-gradient(180deg, var(--n-nebo-3) 0%, var(--n-nebo-2) 100%);
   padding: clamp(5rem, 11vw, 8rem) 0 4rem;
 }
+.n-kuverte__uvod {
+  margin: -1.25rem auto 2rem;
+  max-width: 34rem;
+  text-align: center;
+  color: #d9d3c4;
+}
 .n-teme {
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem 1rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 800px) {
+  .n-teme {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.25rem 1.75rem;
+  }
 }
 .n-tema {
   display: block;
   text-decoration: none;
-  color: var(--p-text);
-  background: var(--p-bg);
-  border-radius: 6px;
-  overflow: hidden;
+  color: var(--p-bg);
+}
+.n-tema img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
   box-shadow:
-    0 0 0 1px rgba(212, 175, 55, 0.55),
-    0 18px 40px rgba(0, 0, 0, 0.35);
+    0 2px 3px rgba(0, 0, 0, 0.35),
+    0 18px 36px rgba(0, 0, 0, 0.45);
   transition: transform 0.25s ease;
 }
-.n-tema:hover {
-  transform: translateY(-4px);
+.n-tema:hover img {
+  transform: translateY(-5px) rotate(-0.6deg);
 }
 .n-tema:focus-visible {
   outline: 2px solid var(--p-gold);
-  outline-offset: 4px;
-}
-.n-tema__uzorak {
-  height: 190px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(ellipse 80% 70% at 50% 45%, color-mix(in srgb, var(--tlo) 82%, #fff) 0%, var(--tlo) 75%);
+  outline-offset: 6px;
 }
 .n-tema__tekst {
   display: block;
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 0.875rem 0.125rem 0;
 }
 .n-tema__tekst strong {
   display: block;
-  font: 500 1.5rem/1.2 var(--p-font-head);
-  color: var(--p-primary);
+  font: 500 1.375rem/1.2 var(--p-font-head);
+  color: var(--p-gold);
 }
 .n-tema__tekst span {
+  display: none;
   font-size: 0.9375rem;
-  color: var(--p-muted);
+  color: #c9c3b4;
+}
+@media (min-width: 800px) {
+  .n-tema__tekst span {
+    display: block;
+  }
 }
 .n-kuverte__cta {
   margin: 2.5rem 0 0;
   text-align: center;
-}
-
-/* mala kuverta: papir sa sjenom, preklopi i voštani pečat */
-.n-kuverta {
-  position: relative;
-  width: 168px;
-  aspect-ratio: 3 / 2;
-  border-radius: 4px;
-  background:
-    linear-gradient(to top right, transparent calc(50% - 0.5px), rgba(0, 0, 0, 0.16) 50%, transparent calc(50% + 0.5px)),
-    linear-gradient(to top left, transparent calc(50% - 0.5px), rgba(0, 0, 0, 0.16) 50%, transparent calc(50% + 0.5px)),
-    linear-gradient(160deg, color-mix(in srgb, var(--front) 90%, #fff) 0%, var(--front) 45%, color-mix(in srgb, var(--front) 86%, #000) 100%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 14px 26px rgba(0, 0, 0, 0.35),
-    0 3px 6px rgba(0, 0, 0, 0.25);
-  transform: rotate(-3deg);
-}
-.n-kuverta::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 62%;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--flap) 92%, #fff) 0%, var(--flap) 60%, color-mix(in srgb, var(--flap) 84%, #000) 100%);
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.3));
-}
-.n-kuverta::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 60%;
-  width: 34px;
-  height: 34px;
-  border-radius: 46% 54% 50% 50% / 52% 48% 54% 46%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle at 36% 30%, color-mix(in srgb, var(--seal) 65%, #fff) 0%, var(--seal) 45%, color-mix(in srgb, var(--seal) 70%, #000) 100%);
-  box-shadow:
-    inset 0 0 0 5px color-mix(in srgb, var(--seal) 88%, #000),
-    inset 0 0 0 6px color-mix(in srgb, var(--seal) 70%, #fff),
-    0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 599px) {
@@ -390,7 +363,7 @@ body.pocetna .p-btn:focus-visible {
   .scena__lampica {
     animation: none;
   }
-  .n-tema {
+  .n-tema img {
     transition: none;
   }
 }

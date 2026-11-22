@@ -1,15 +1,22 @@
 ---
 // Kuverta iz Kuverte (src/components/Envelope.astro): primatelj je dodirne, pečat pukne, zaklopac se otvori
-// (vidi se podstava), kartica izađe i naraste preko ekrana. Na kraju se pojavi čestitka (događaj mwi:env-open,
-// vidi Karta.astro). Izgled prati temu (CSS varijable u styles/teme.css).
-// Prikazuje se samo kad skripta u <head> (EnvelopeHead) doda <html class="env">; bez JS-a je skrivena.
+// (vidi se podstava), čestitka izađe iz kuverte, kuverta nestane, a čestitka dođe na svoje mjesto na ekranu.
+// Kartica u kuverti je ista slika kao gotova čestitka (postavlja je skripta u Karta.astro).
+// Izgled prati dizajn (CSS varijable iz lib/teme.ts). Prikazuje se samo kad skripta u <head> (EnvelopeHead)
+// doda <html class="env">; bez JS-a je skrivena.
+import { grancica } from '../lib/ilustracije';
+
 interface Props {
   storageKey: string; // '' = prikaži svaki put (primjeri, pregled); inače pamtimo da je primatelj već otvorio
-  naslov: string; // gornji red na kartici, npr. "Sretan Božić"
-  za: string; // "Za Anu"
+  za: string; // "Za Anu", stoji iznad upute
   pecat: string; // znak na pečatu
+  deco: 'bozikovina' | 'imela' | 'bor'; // grančica ispod pečata
 }
-const { storageKey, naslov, za, pecat } = Astro.props;
+const { storageKey, za, pecat, deco } = Astro.props;
+const LIST = {
+  bozikovina: 'M0 0 Q8 -15 18 -8 Q23 -19 32 -10 Q39 -19 46 -8 Q55 -10 64 0 Q55 10 46 8 Q39 19 32 10 Q23 19 18 8 Q8 15 0 0 Z',
+  imela: 'M0 0 C10 -13 44 -16 62 -5 C67 -2 67 3 62 6 C44 15 10 11 0 0 Z',
+};
 ---
 
 <div class="inv-env" id="kuverta" data-key={storageKey} role="dialog" aria-modal="true" aria-label="Čestitka u kuverti">
@@ -17,9 +24,8 @@ const { storageKey, naslov, za, pecat } = Astro.props;
     <span class="inv-env__stage" aria-hidden="true">
       <span class="inv-env__envelope">
         <span class="inv-env__back"></span>
-        <span class="inv-env__card">
-          <span class="inv-env__card-kicker">{naslov}</span>
-          {za && <span class="inv-env__card-names">{za}</span>}
+        <span class="inv-env__dzep">
+          <span class="inv-env__card"><img class="inv-env__card-slika" alt="" width="1080" height="1350" /></span>
         </span>
         <svg class="inv-env__front" viewBox="0 0 300 200" preserveAspectRatio="none" focusable="false">
           <defs>
@@ -56,10 +62,9 @@ const { storageKey, naslov, za, pecat } = Astro.props;
         </svg>
         <span class="inv-env__tekstura"></span>
         <span class="inv-env__deco">
-          <!-- grančica božikovine ispod pečata -->
+          <!-- grančica ispod pečata: božikovina, imela ili bor -->
           <svg viewBox="0 0 200 120" focusable="false">
             <defs>
-              <path id="env-list" d="M0 0 Q8 -15 18 -8 Q23 -19 32 -10 Q39 -19 46 -8 Q55 -10 64 0 Q55 10 46 8 Q39 19 32 10 Q23 19 18 8 Q8 15 0 0 Z"></path>
               <radialGradient id="env-bobica" cx="0.35" cy="0.3" r="0.8">
                 <stop offset="0" stop-color="#fff" stop-opacity="0.75"></stop>
                 <stop offset="0.3" stop-color="#fff" stop-opacity="0"></stop>
@@ -68,18 +73,22 @@ const { storageKey, naslov, za, pecat } = Astro.props;
             </defs>
             <g transform="translate(100 60)">
               {
-                [
-                  [198, 2],
-                  [158, 1],
-                  [-18, 1],
-                  [22, 2],
-                  [90, 2],
-                ].map(([kut, ton]) => (
-                  <g transform={`rotate(${kut}) translate(16 0)`}>
-                    <use href="#env-list" class={`inv-env__list inv-env__list--${ton}`} />
-                    <path d="M3 0 H58" class="inv-env__zila" />
-                  </g>
-                ))
+                deco === 'bor' ? (
+                  <g set:html={grancica()} />
+                ) : (
+                  [
+                    [198, 2],
+                    [158, 1],
+                    [-18, 1],
+                    [22, 2],
+                    [90, 2],
+                  ].map(([kut, ton]) => (
+                    <g transform={`rotate(${kut}) translate(16 0)`}>
+                      <path d={LIST[deco]} class={`inv-env__list inv-env__list--${ton}`} />
+                      <path d="M3 0 H56" class="inv-env__zila" />
+                    </g>
+                  ))
+                )
               }
               {
                 [
@@ -111,7 +120,10 @@ const { storageKey, naslov, za, pecat } = Astro.props;
       <span class="inv-env__ground"></span>
     </span>
   </button>
-  <p class="inv-env__hint" aria-live="polite">Dodirnite za otvaranje</p>
+  <p class="inv-env__hint" aria-live="polite">
+    {za && <span class="inv-env__za">{za}</span>}
+    Dodirnite za otvaranje
+  </p>
   <button type="button" class="inv-env__skip">Preskoči</button>
 </div>
 
@@ -145,7 +157,7 @@ const { storageKey, naslov, za, pecat } = Astro.props;
       document.dispatchEvent(new Event('mwi:env-open'));
       setTimeout(function () {
         el.remove();
-      }, reduced ? 200 : 700);
+      }, reduced ? 200 : 450);
     }
     function open(animate) {
       if (done) return;
@@ -154,11 +166,21 @@ const { storageKey, naslov, za, pecat } = Astro.props;
       remember();
       if (animate && !reduced) {
         el.classList.add('is-open');
-        // kartica je vani: naraste preko ekrana, pa se pojavi čestitka
+        // Čestitka je izašla: kuverta nestaje, a kartica se pomakne i naraste točno na mjesto gotove čestitke.
         setTimeout(function () {
+          var card = el.querySelector('.inv-env__card');
+          var cilj = document.getElementById('karta');
+          if (card && cilj) {
+            var c = card.getBoundingClientRect();
+            var t = cilj.getBoundingClientRect();
+            var m = new DOMMatrix(getComputedStyle(card).transform);
+            var dx = t.left + t.width / 2 - (c.left + c.width / 2) + m.m41;
+            var dy = t.top + t.height / 2 - (c.top + c.height / 2) + m.m42;
+            card.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + t.width / c.width + ')';
+          }
           el.classList.add('is-zoom');
-        }, 1750);
-        setTimeout(finish, 2300);
+        }, 1900);
+        setTimeout(finish, 2750);
       } else {
         finish();
       }

@@ -9,10 +9,16 @@ import { TEME } from '../../lib/teme';
 
 const info = TEME.find((t) => t.key === Astro.params.tema);
 if (!info) return new Response(null, { status: 404 });
-const p = PRIMJERI[info.key];
+const p = { ...PRIMJERI[info.key] };
+// Samo u razvoju: ?proba=dugo (poruka od 600 znakova) i ?proba=foto (s fotografijom), za provjeru slaganja teksta.
+if (import.meta.env.DEV) {
+  const proba = Astro.url.searchParams.get('proba');
+  if (proba === 'dugo') p.poruka = 'Draga naša obitelji, ove godine smo se rijetko viđali, ali smo često mislili na vas. '.repeat(7).slice(0, 600);
+  if (proba === 'foto') p.slika = '/primjeri/zimska.jpg';
+}
 ---
 
 <CestitkaLayout tema={info.key} envelope="" noindex={false} title={`Primjer čestitke: ${info.naziv}`}>
-  <Envelope storageKey="" naslov={p.naslov} za={p.za} pecat={info.pecat} />
-  <Karta naslov={p.naslov} poruka={p.poruka} od={p.od} slika={p.slika} />
+  <Envelope storageKey="" za={p.za} pecat={info.pecat} deco={info.deco} />
+  <Karta tema={info.key} naslov={p.naslov} poruka={p.poruka} od={p.od} slika={p.slika} />
 </CestitkaLayout>

@@ -33,30 +33,17 @@ export async function dohvatiJavnu(supabase: SupabaseClient, token: string): Pro
   return row ? (row as JavnaCestitka) : null;
 }
 
-// Primjeri za /primjer/<tema> (rade bez baze; služe za pregled tema i za objave).
-export const PRIMJERI: Record<TemaKey, Omit<JavnaCestitka, 'slika'> & { slika: string | null }> = {
-  klasicna: {
-    tema: 'klasicna',
-    za: 'Za Anu',
-    od: 'Marko',
-    naslov: 'Sretan Božić',
-    poruka: 'Draga Ana,\nželim ti mirne blagdane, puno topline i dobrih ljudi oko sebe.\nVidimo se za Novu godinu.',
-    slika: '/primjeri/klasicna.jpg',
-  },
-  zimska: {
-    tema: 'zimska',
-    za: 'Za baku i djeda',
-    od: 'Vaši Luka i Petra',
-    naslov: 'Sretan Božić',
-    poruka: 'Dragi baka i djede,\nhvala vam na svakoj nedjelji za vašim stolom.\nOvaj Božić mislimo na vas i jedva čekamo kolače.',
-    slika: null,
-  },
-  moderna: {
-    tema: 'moderna',
-    za: 'Za tim',
-    od: 'Ivana',
-    naslov: 'Sretni blagdani',
-    poruka: 'Hvala vam na ovoj godini i na strpljenju u prosincu.\nOdmorite se, a vidimo se u siječnju.',
-    slika: null,
-  },
+// Primjeri za /primjer/<tema> (rade bez baze; služe za pregled dizajna i za objave).
+const primjer = (tema: TemaKey, za: string, od: string, naslov: string, poruka: string): JavnaCestitka => ({ tema, za, od, naslov, poruka, slika: null });
+
+export const PRIMJERI: Record<TemaKey, JavnaCestitka> = {
+  klasicna: primjer('klasicna', 'Za Anu', 'Marko', 'Sretan Božić', 'Draga Ana,\nželim ti mirne blagdane, puno topline i dobrih ljudi oko sebe.\nVidimo se za Novu godinu.'),
+  zimska: primjer('zimska', 'Za baku i djeda', 'Vaši Luka i Petra', 'Sretan Božić', 'Dragi baka i djede,\nhvala vam na svakoj nedjelji za vašim stolom.\nOvaj Božić mislimo na vas i jedva čekamo kolače.'),
+  moderna: primjer('moderna', 'Za tim', 'Ivana', 'Sretni blagdani', 'Hvala vam na ovoj godini i na strpljenju u prosincu.\nOdmorite se, a vidimo se u siječnju.'),
+  imela: primjer('imela', 'Za Maju', 'Tvoj Filip', 'Sretan Božić', 'Draga Majo,\nneka ti blagdani prođu uz ljude koje voliš.\nPrvi poljubac pod imelom čuvam za tebe.'),
+  andeo: primjer('andeo', 'Za kumu Mariju', 'Obitelj Horvat', 'Čestit Božić', 'Draga kumo,\nneka vam Božić donese mir i zdravlje, a nova godina puno lijepih dana.'),
+  djed: primjer('djed', 'Za Luku', 'Teta Sanja', 'Sretan Božić', 'Dragi Luka,\nDjed Božićnjak mi je rekao da si bio jako dobar ove godine.\nPogledaj pod bor.'),
+  sob: primjer('sob', 'Za Petru', 'Tvoja ekipa', 'Sretan Božić', 'Draga Petra,\nželimo ti puno smijeha i kolača.\nVidimo se na dočeku.'),
+  drvce: primjer('drvce', 'Za mamu i tatu', 'Vaša Ivana', 'Sretan Božić', 'Dragi mama i tata,\nhvala vam na svakom Božiću kod kuće.\nDolazim na Badnjak.'),
+  vijenac: primjer('vijenac', 'Za susjede', 'Kovačevi', 'Sretan Božić', 'Dragi susjedi,\nželimo vam miran Božić i sretnu novu godinu.\nSvratite na kolače.'),
 };
