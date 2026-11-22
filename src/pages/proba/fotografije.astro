@@ -1,0 +1,59 @@
+---
+// PROTOTIP, samo u razvoju: kako bi izgledala fotografija kupca na čestitci (dva načina, svih devet dizajna).
+import ThemeFonts from '../../components/ThemeFonts.astro';
+import { TEME } from '../../lib/teme';
+import { PRIMJERI } from '../../lib/cestitka';
+if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+const fonts = [...new Set(TEME.flatMap((t) => t.fonts))];
+const podaci = TEME.map((t) => ({ tema: t.key, naziv: t.naziv, karta: t.karta, naslov: PRIMJERI[t.key].naslov, poruka: PRIMJERI[t.key].poruka, od: PRIMJERI[t.key].od }));
+---
+<html lang="hr">
+  <head>
+    <meta charset="utf-8" />
+    <ThemeFonts families={fonts} />
+    <style is:global>
+      astro-dev-toolbar { display: none !important; }
+      h2 { margin: 18px 24px 0; font: 600 19px system-ui; }
+      body { margin: 0; background: #ece6dc; font: 16px system-ui; }
+      .red { display: flex; gap: 24px; padding: 16px 24px; align-items: flex-start; }
+      .stup { display: flex; flex-direction: column; gap: 6px; }
+      .stup b { font-size: 15px; }
+      img { width: 270px; height: 337px; box-shadow: 0 4px 14px rgba(0,0,0,.25); border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <div id="sve" data-podaci={JSON.stringify(podaci)}></div>
+    <script>
+      import { nacrtaj } from '../../scripts/cestitka';
+      import { nacrtajPoledinu } from '../../scripts/proba-foto';
+      const sve = document.getElementById('sve')!;
+      const podaci = JSON.parse(sve.dataset.podaci!);
+      const foto = '/primjeri/_proba-foto.jpg';
+      const nacin = new URLSearchParams(location.search).get('nacin') ?? 'oba';
+      for (const p of podaci) {
+        const h = document.createElement('h2');
+        h.textContent = p.naziv;
+        sve.append(h);
+        const red = document.createElement('div');
+        red.className = 'red';
+        const stup = (natpis: string, c: HTMLCanvasElement) => {
+          const s = document.createElement('div');
+          s.className = 'stup';
+          const b = document.createElement('b');
+          b.textContent = natpis;
+          const i = document.createElement('img');
+          i.src = c.toDataURL('image/jpeg', 0.9);
+          s.append(b, i);
+          red.append(s);
+        };
+        if (nacin === 'oba' || nacin === 'iznad') stup('A: fotografija iznad teksta', await nacrtaj({ ...p, slika: foto }));
+        if (nacin === 'oba' || nacin === 'poledina') {
+          stup('B: prednja strana, tekst ostaje velik', await nacrtaj({ ...p, slika: null }));
+          stup('B: poleđina s fotografijom', await nacrtajPoledinu({ ...p, slika: foto, natpis: 'Božić 2026.' }));
+        }
+        sve.append(red);
+      }
+      document.body.dataset.gotovo = '1';
+    </script>
+  </body>
+</html>
