@@ -63,9 +63,7 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
             Otvori ponovno
           </button>
         </div>
-        <p class="napomena" id="napomena" hidden>
-          Na mobitelu se otvara izbornik za dijeljenje: odaberite „Spremi sliku”.
-        </p>
+        <p class="napomena" id="napomena" hidden></p>
       </>
     )
   }
@@ -73,7 +71,7 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
 <script type="application/json" id="cestitka-podaci" set:html={JSON.stringify(podaci).replace(/</g, '\\u003c')} />
 
 <script>
-  import { jeMobitel, nacrtaj, nacrtajFotografiju, natpisFotografije, spremi, uBlob, type Podaci } from '../scripts/cestitka';
+  import { nacrtaj, nacrtajFotografiju, natpisFotografije, spremi, uBlob, type Podaci } from '../scripts/cestitka';
 
   const podaci = JSON.parse(document.getElementById('cestitka-podaci')?.textContent ?? 'null') as Podaci | null;
   const slika = document.getElementById('karta-slika') as HTMLImageElement | null;
@@ -109,9 +107,6 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
       }
     }
   })();
-
-  // Uputa za galeriju treba samo na mobitelu; na računalu slika ide ravno u Preuzimanja.
-  if (napomena && jeMobitel()) napomena.hidden = false;
 
   document.getElementById('ponovi')?.addEventListener('click', () => {
     // Pokaži kuvertu ponovno: zaboravi da je otvorena na ovom uređaju.
