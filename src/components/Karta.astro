@@ -43,7 +43,7 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
     primjer && (
       <div class="gumbi">
         <slot name="radnje" />
-        <a class="gumb" href={natrag.href}>
+        <a class={Astro.slots.has('radnje') ? 'gumb gumb--sporedni' : 'gumb'} href={natrag.href}>
           {natrag.tekst}
         </a>
         <button type="button" class="gumb gumb--sporedni" id="ponovi">
