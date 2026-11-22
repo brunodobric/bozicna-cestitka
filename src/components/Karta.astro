@@ -1,48 +1,33 @@
 ---
-// Čestitka koju primatelj vidi kad se kuverta otvori: slika (neobavezno), naslov, poruka i potpis.
-// Raspored je namjerno jednostavan i fiksan, jer se ista čestitka crta na canvas za "Spremi kao sliku"
-// (scripts/spremi.ts). Promjena rasporeda ovdje traži istu promjenu u crtanju.
-// Ukrasi u kutovima (lib/ukrasi.ts) crtaju se i na canvasu; uz fotografiju su samo donja dva.
+// Čestitka koju primatelj vidi kad se kuverta otvori. Cijela čestitka je jedna slika nacrtana na canvas
+// (scripts/cestitka.ts): ista se slika prikazuje na kartici u kuverti (Envelope.astro), ovdje i u galeriji
+// nakon "Spremi kao sliku". Tekst je zato i u atributu alt, za čitače zaslona.
+import { tema as temaInfo } from '../lib/teme';
+import type { Podaci } from '../scripts/cestitka';
+
 interface Props {
+  tema: string;
   naslov: string;
   poruka: string;
   od: string;
   slika: string | null; // javni URL slike ili null
   gumbi?: boolean; // Spremi kao sliku / Otvori ponovno
 }
-import { KUT_LINIJA, KUT_VELICINA, KUT_ZVIJEZDA } from '../lib/ukrasi';
-
-const { naslov, poruka, od, slika, gumbi = true } = Astro.props;
-const KUTOVI = ['gl', 'gd', 'dl', 'dd']; // gore lijevo, gore desno, dolje lijevo, dolje desno
+const { tema, naslov, poruka, od, slika, gumbi = true } = Astro.props;
+const info = temaInfo(tema);
+const podaci: Podaci = { tema: info.key, karta: info.karta, naslov, poruka, od, slika };
+const alt = [naslov, poruka, od].filter(Boolean).join('. ');
 ---
 
 <main class="cest">
-  <article class="karta" id="karta" data-slika={slika ? '1' : '0'}>
-    {slika && <img id="karta-slika" class="karta__slika" src={slika} alt="" crossorigin="anonymous" width="1600" height="1200" />}
-    <div class="karta__tekst">
-      {!slika && (
-        <span class="karta__ukras" aria-hidden="true">
-          <span></span>✦<span></span>
-        </span>
-      )}
-      <h1 class="karta__naslov" id="karta-naslov">{naslov}</h1>
-      {poruka && <p class="karta__poruka" id="karta-poruka">{poruka}</p>}
-      {od && <p class="karta__potpis" id="karta-potpis">{od}</p>}
-    </div>
-    {
-      KUTOVI.map((k) => (
-        <svg class={`karta__kut karta__kut--${k}`} viewBox={`0 0 ${KUT_VELICINA} ${KUT_VELICINA}`} aria-hidden="true" focusable="false">
-          <path d={KUT_LINIJA} fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-          <path d={KUT_ZVIJEZDA} fill="currentColor" />
-        </svg>
-      ))
-    }
-  </article>
+  <div class="karta" id="karta">
+    <img id="karta-slika" alt={alt} width="1080" height="1350" />
+  </div>
   {
     gumbi && (
       <>
         <div class="gumbi">
-          <button type="button" class="gumb" id="spremi">
+          <button type="button" class="gumb" id="spremi" disabled>
             Spremi kao sliku
           </button>
           <button type="button" class="gumb gumb--sporedni" id="ponovi">
@@ -56,15 +41,33 @@ const KUTOVI = ['gl', 'gd', 'dl', 'dd']; // gore lijevo, gore desno, dolje lijev
     )
   }
 </main>
+<script type="application/json" id="cestitka-podaci" set:html={JSON.stringify(podaci).replace(/</g, '\\u003c')} />
 
 <script>
-  import { spremiKaoSliku } from '../scripts/spremi';
+  import { nacrtaj, spremi, uBlob, type Podaci } from '../scripts/cestitka';
 
-  const karta = document.getElementById('karta');
-  // Kad se kuverta makne, čestitka "doleti" i malo se zumira.
-  document.addEventListener('mwi:env-open', () => karta?.classList.add('is-in'), { once: true });
-  // Bez kuverte (već otvorena na ovom uređaju) čestitka je odmah vidljiva.
-  if (!document.documentElement.classList.contains('env')) karta?.classList.add('is-in');
+  const podaci = JSON.parse(document.getElementById('cestitka-podaci')?.textContent ?? 'null') as Podaci | null;
+  const slika = document.getElementById('karta-slika') as HTMLImageElement | null;
+  const gumb = document.getElementById('spremi') as HTMLButtonElement | null;
+  const napomena = document.getElementById('napomena');
+  let blob: Blob | null = null;
+
+  // Slika se pripremi odmah (dok je kuverta još zatvorena) i postavi i na karticu u kuverti.
+  (async () => {
+    if (!podaci || !slika) return;
+    try {
+      blob = await uBlob(await nacrtaj(podaci));
+      if (!blob) throw new Error('canvas');
+      const url = URL.createObjectURL(blob);
+      slika.src = url;
+      const mala = document.querySelector<HTMLImageElement>('.inv-env__card-slika');
+      if (mala) mala.src = url;
+      if (gumb) gumb.disabled = false;
+    } catch (e) {
+      console.error('cestitka', e);
+      if (napomena) napomena.textContent = 'Čestitka se nije uspjela prikazati. Osvježite stranicu.';
+    }
+  })();
 
   document.getElementById('ponovi')?.addEventListener('click', () => {
     // Pokaži kuvertu ponovno: zaboravi da je otvorena na ovom uređaju.
@@ -74,13 +77,11 @@ const KUTOVI = ['gl', 'gd', 'dl', 'dd']; // gore lijevo, gore desno, dolje lijev
     location.reload();
   });
 
-  const gumb = document.getElementById('spremi') as HTMLButtonElement | null;
-  const napomena = document.getElementById('napomena');
   gumb?.addEventListener('click', async () => {
-    if (!karta) return;
+    if (!blob) return;
     gumb.disabled = true;
     try {
-      await spremiKaoSliku(karta);
+      await spremi(blob);
     } catch (e) {
       console.error('spremi', e);
       if (napomena) napomena.textContent = 'Slika se nije spremila. Pokušajte ponovno ili napravite snimku zaslona.';

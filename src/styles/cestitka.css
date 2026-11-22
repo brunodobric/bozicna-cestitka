@@ -18,14 +18,6 @@ body.inv {
 .inv-env__flap-face--in {
   background: repeating-linear-gradient(135deg, var(--env-liner) 0 7px, var(--env-liner-stripe) 7px 8px);
 }
-.inv-env__card {
-  border-color: var(--accent);
-  outline: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  outline-offset: -6px;
-}
-.inv-env__card-names {
-  font-style: italic;
-}
 .inv-env__hint,
 .inv-env__skip {
   color: var(--na-pozadini);
@@ -91,12 +83,67 @@ body.inv {
 .inv-env__back {
   box-shadow: inset 0 10px 18px rgba(0, 0, 0, 0.35);
 }
-.inv-env__card {
-  background: var(--tekstura), linear-gradient(to bottom, #fff 0%, var(--surface) 30%);
-  background-color: var(--surface);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    0 2px 6px rgba(0, 0, 0, 0.3);
+/* Kartica u kuverti je ista slika kao gotova čestitka (omjer 4:5). Viša je od kuverte, pa je "džep"
+   reže na donjem rubu kuverte dok ne izađe. */
+.inv-env__dzep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  clip-path: inset(-400% -100% 0 -100%);
+}
+.inv-env.is-zoom .inv-env__dzep {
+  clip-path: none;
+}
+.inv-env .inv-env__card {
+  top: 5%;
+  bottom: auto;
+  display: block;
+  padding: 0;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 0;
+  border-radius: 2px;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transform-origin: 50% 50%;
+}
+.inv-env__card-slika {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.inv-env__card-slika:not([src]) {
+  visibility: hidden;
+}
+.inv-env.is-open .inv-env__card {
+  transform: translateY(-58%);
+}
+/* dok čestitka izlazi, kuverta se malo spusti da čestitka ne ode iznad ekrana */
+.inv-env__stage {
+  transition: transform 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) 0.7s;
+}
+.inv-env.is-open .inv-env__stage {
+  transform: translateY(min(16svh, 120px));
+}
+.inv-env.is-zoom .inv-env__card {
+  background: var(--surface);
+  box-shadow: 0 26px 50px rgba(0, 0, 0, 0.45);
+  transition:
+    transform 0.8s cubic-bezier(0.5, 0, 0.2, 1),
+    box-shadow 0.8s ease;
+}
+.inv-env.is-zoom .inv-env__card > * {
+  opacity: 1;
+}
+.inv-env__hint {
+  text-align: center;
+}
+.inv-env__za {
+  display: block;
+  margin-bottom: 0.35rem;
+  font: italic 400 1.5rem/1.2 var(--font-head);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* grančica ispod pečata */
@@ -215,144 +262,27 @@ body.inv {
     radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.38) 100%),
     radial-gradient(ellipse 85% 60% at 50% 44%, var(--bg-glow) 0%, var(--bg) 72%);
 }
-/* Čestitka: papir sa zrnom, rub u foliji, unutarnja linija i ukrasi u kutovima; sjena daje debljinu kartona. */
+/* Čestitka je jedna slika (canvas 1080 × 1350); sjena daje debljinu kartona. */
 .karta {
-  position: relative;
-  width: min(100%, 460px);
-  background:
-    var(--tekstura),
-    radial-gradient(ellipse 90% 60% at 30% 0%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 70%),
-    var(--k-papir);
-  color: var(--k-tekst);
-  border: 2px solid var(--k-rub);
-  border-image: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--k-rub) 55%, #fff) 0%,
-      var(--k-rub) 30%,
-      color-mix(in srgb, var(--k-rub) 72%, #000) 60%,
-      color-mix(in srgb, var(--k-rub) 55%, #fff) 100%
-    )
-    1;
-  outline: 1px solid var(--k-rub2);
-  outline-offset: -9px;
+  width: min(100%, 460px, calc((100svh - 13rem) * 0.8));
+  aspect-ratio: 4 / 5;
+  background: var(--surface);
+  border-radius: 2px;
   box-shadow:
-    0 1px 0 color-mix(in srgb, var(--k-papir) 80%, #000),
-    0 2px 0 color-mix(in srgb, var(--k-papir) 70%, #000),
-    0 3px 3px rgba(0, 0, 0, 0.3),
+    0 2px 3px rgba(0, 0, 0, 0.3),
     0 26px 50px rgba(0, 0, 0, 0.45);
   overflow: hidden;
 }
-.karta__kut {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  color: var(--k-rub);
-  pointer-events: none;
+.karta img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-.karta__kut--gl {
-  top: 14px;
-  left: 14px;
-}
-.karta__kut--gd {
-  top: 14px;
-  right: 14px;
-  transform: scaleX(-1);
-}
-.karta__kut--dl {
-  bottom: 14px;
-  left: 14px;
-  transform: scaleY(-1);
-}
-.karta__kut--dd {
-  bottom: 14px;
-  right: 14px;
-  transform: scale(-1);
-}
-.karta[data-slika='1'] .karta__kut--gl,
-.karta[data-slika='1'] .karta__kut--gd {
-  display: none;
-}
-.karta__slika {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-}
-.karta__naslov {
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+.karta img:not([src]) {
+  visibility: hidden;
 }
 html.env .karta {
   opacity: 0;
-}
-.karta.is-in {
-  animation: zum 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-@keyframes zum {
-  from {
-    opacity: 0;
-    transform: scale(0.82);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .karta.is-in {
-    animation: none;
-  }
-}
-.karta__slika {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-}
-.karta__tekst {
-  padding: 1.5rem 2rem 2.5rem;
-  text-align: center;
-}
-.karta[data-slika='0'] .karta__tekst {
-  padding: 3.5rem 2rem 3.25rem;
-}
-.karta__ukras {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  margin-bottom: 1rem;
-  color: var(--k-rub);
-  font-size: 1rem;
-}
-.karta__ukras span {
-  width: 3.5rem;
-  height: 1px;
-  background: currentColor;
-}
-.karta__naslov {
-  font-family: var(--k-font-naslov);
-  font-style: var(--k-stil-naslov);
-  font-weight: 400;
-  font-size: 2rem;
-  line-height: 1.15;
-  color: var(--k-naslov);
-  margin: 0 0 0.75rem;
-  overflow-wrap: anywhere;
-}
-.karta__poruka {
-  font-family: var(--k-font-tekst);
-  font-size: 1.125rem;
-  line-height: 1.55;
-  white-space: pre-line;
-  margin: 0 0 1rem;
-  overflow-wrap: anywhere;
-}
-.karta__potpis {
-  font-family: var(--k-font-tekst);
-  font-style: italic;
-  font-size: 1.25rem;
-  line-height: 1.3;
-  color: var(--k-potpis);
-  margin: 0;
-  overflow-wrap: anywhere;
 }
 .gumbi {
   display: flex;

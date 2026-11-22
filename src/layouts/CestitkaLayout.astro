@@ -8,7 +8,6 @@ import Snijeg from '../components/Snijeg.astro';
 import { tema as temaInfo } from '../lib/teme';
 import { SITE_NAME, siteOrigin } from '../lib/seo';
 import '../styles/kuverta.css';
-import '../styles/teme.css';
 import '../styles/cestitka.css';
 
 interface Props {
@@ -20,6 +19,10 @@ interface Props {
 const { tema, envelope = null, title = 'Stigla vam je božićna čestitka', noindex = true } = Astro.props;
 const info = temaInfo(tema);
 const origin = siteOrigin(Astro.url);
+// boje stranice i kuverte za odabrani dizajn (lib/teme.ts)
+const stil = Object.entries(info.vars)
+  .map(([k, v]) => `${k}:${v}`)
+  .join(';');
 ---
 
 <!doctype html>
@@ -44,7 +47,7 @@ const origin = siteOrigin(Astro.url);
     {typeof envelope === 'string' && <EnvelopeHead storageKey={envelope} />}
     <ThemeFonts families={info.fonts} preload={info.preload} />
   </head>
-  <body class="inv" data-tema={info.key} style={`background:${info.bg}`}>
+  <body class="inv" data-tema={info.key} style={`background:${info.bg};${stil}`}>
     <slot />
     <Snijeg />
   </body>
