@@ -259,3 +259,27 @@ p {
   font-size: 0.875rem;
   color: var(--p-muted);
 }
+
+/* Pravne stranice (privatnost, uvjeti): jedan stupac za čitanje. */
+.pravno {
+  max-width: 42rem;
+  margin: 0 auto;
+  overflow-wrap: anywhere;
+}
+.pravno h2 {
+  font-size: 1.5rem;
+  margin: 2rem 0 0.5rem;
+}
+.pravno h3 {
+  font-size: 1.0625rem;
+  margin: 1.25rem 0 0.25rem;
+}
+.pravno ul {
+  padding-left: 1.25rem;
+}
+.pravno li + li {
+  margin-top: 0.4rem;
+}
+.pravno a {
+  color: var(--p-primary);
+}

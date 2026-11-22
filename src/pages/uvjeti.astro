@@ -1,0 +1,121 @@
+---
+// Uvjeti korištenja. Cijene se čitaju iz lib/cijena.ts da se tekst ne razilazi s ponudom.
+// Kad se promijeni rok, paket ili pravilo zaključavanja, promijeni i ovaj tekst i datum.
+import Base from '../layouts/Base.astro';
+import { PONUDE, iznos, nazivPonude } from '../lib/cijena';
+---
+
+<Base title="Uvjeti korištenja | Božićna čestitka" description="Uvjeti kupnje i korištenja digitalne božićne čestitke: cijene, rok od 30 dana, odustanak od kupnje i povrat novca.">
+  <article class="pravno">
+    <h1>Uvjeti korištenja</h1>
+    <p class="p-muted p-small">Zadnje ažurirano: 22. studenoga 2026.</p>
+
+    <h2>1. Tko pruža uslugu</h2>
+    <p>
+      Uslugu na bozicna.kuverta.hr pruža Digitalni partner, obrt za digitalne usluge, vl. Bruno Dobrić, Klanac 4A, 10000 Zagreb, OIB
+      32056979864, e-mail <a href="mailto:kontakt@kuverta.hr">kontakt@kuverta.hr</a>. Korištenjem stranice i kupnjom čestitke prihvaćate
+      ove uvjete.
+    </p>
+
+    <h2>2. Što dobivate</h2>
+    <p>
+      Digitalnu božićnu čestitku: stranicu na kojoj primatelj otvori kuvertu, vidi vašu poruku i fotografiju, čuje melodiju koju ste
+      odabrali i može spremiti čestitku kao sliku. Čestitku šaljete sami, linkom porukom ili mailom. Mi je primatelju ne šaljemo.
+    </p>
+    <p>
+      Izrada i pregled čestitke su besplatni. Link za primatelja dobijete nakon plaćanja, na stranici i mailom na adresu koju upišete pri
+      plaćanju.
+    </p>
+
+    <h2>3. Cijene i plaćanje</h2>
+    <ul>
+      {PONUDE.map((p) => (
+        <li>
+          {nazivPonude(p.komada)}: {iznos(p.centi)}
+        </li>
+      ))}
+    </ul>
+    <p>
+      Cijene su u eurima i konačne su. Cijena je ista s fotografijom i bez nje. Plaća se karticom preko Stripea; podatke kartice upisujete u
+      Stripeova polja i mi ih ne vidimo ni ne spremamo.
+    </p>
+    <p>
+      Kod paketa se čestitka s koje ste platili otključa odmah, a ostale koristite za sljedeće čestitke na istom uređaju. Preostale čestitke
+      vezane su uz preglednik u kojem ste platili. Tajni link iz maila prenosi ih na drugi uređaj, pa ga sačuvajte.
+    </p>
+
+    <h2>4. Rok i brisanje</h2>
+    <p>
+      Plaćena čestitka može se otvoriti 30 dana od dana plaćanja. Nakon toga se trajno briše zajedno s fotografijom i link više ne radi. Ako
+      je primatelj želi zadržati, može je prije toga spremiti kao sliku. Neplaćena čestitka briše se kad je 30 dana nitko ne mijenja.
+    </p>
+
+    <h2>5. Izmjene nakon plaćanja</h2>
+    <p>
+      Nakon plaćanja ime na kuverti se više ne mijenja. Poruku, potpis, dizajn, melodiju i fotografiju možete ispraviti dok primatelj ne
+      otvori čestitku. Kad je primatelj prvi put otvori, čestitka ostaje kakva jest.
+    </p>
+
+    <h2 id="odustanak">6. Odustanak od kupnje</h2>
+    <p>
+      Kod kupnje na daljinu potrošač u pravilu ima pravo jednostrano raskinuti ugovor u roku od 14 dana bez navođenja razloga. Čestitka je
+      digitalni sadržaj koji se ne isporučuje na fizičkom nosaču, a otključa se čim platite. Zato prije plaćanja izričito tražite da
+      isporuka počne odmah i potvrđujete da time gubite pravo na jednostrani raskid ugovora, u skladu sa Zakonom o zaštiti potrošača. To
+      vrijedi i za cijeli paket, jer su sve čestitke iz paketa dostupne odmah nakon plaćanja. Tu potvrdu dobivate i u mailu nakon uplate.
+    </p>
+    <p>
+      Ako ste platili greškom, na primjer dva puta istu čestitku, javite nam se i vratit ćemo novac za višak.
+    </p>
+
+    <h2>7. Ako čestitka ne radi</h2>
+    <p>
+      Odgovaramo za to da čestitka radi kako je opisano. Ako se zbog greške na našoj strani ne može otvoriti ili prikazati, javite nam se na
+      <a href="mailto:kontakt@kuverta.hr">kontakt@kuverta.hr</a> s linkom čestitke. Popravit ćemo grešku, a ako to ne uspijemo u razumnom
+      roku, vratit ćemo vam novac na karticu kojom ste platili. Na isti način vraćamo novac i za sve druge slučajeve u kojima to propisuje
+      zakon.
+    </p>
+
+    <h2>8. Prigovori i rješavanje sporova</h2>
+    <p>
+      Prigovor možete poslati mailom na <a href="mailto:kontakt@kuverta.hr">kontakt@kuverta.hr</a> ili poštom na adresu iz točke 1.
+      Primitak prigovora potvrđujemo odmah, a pisani odgovor šaljemo najkasnije u roku od 15 dana.
+    </p>
+    <p>
+      Ako spor ne riješimo dogovorom, možete se obratiti tijelu za alternativno rješavanje potrošačkih sporova. Popis tih tijela objavljuje
+      ministarstvo nadležno za zaštitu potrošača. Primjenjuje se pravo Republike Hrvatske, a za sporove je nadležan stvarno nadležni sud u
+      Zagrebu, osim kad zakon potrošaču daje pravo na sud prema njegovu prebivalištu.
+    </p>
+
+    <h2>9. Vaš sadržaj</h2>
+    <p>
+      Za tekst i fotografiju koje dodate u čestitku odgovarate vi. Dodajte samo fotografiju koju smijete koristiti i na kojoj se ljudi slažu
+      da budu na čestitci. Čestitka ne smije sadržavati uvredljiv, prijeteći ili nezakonit sadržaj niti tuđe autorsko djelo bez dopuštenja.
+      Takvu čestitku možemo ukloniti, a ako je plaćena, vratit ćemo novac osim kad je uklanjamo zbog kršenja zakona.
+    </p>
+    <p>
+      Sadržaj ne pregledavamo i ne koristimo ga ni za što osim za prikaz vaše čestitke. Ako vidite čestitku s nezakonitim sadržajem, javite
+      nam link na <a href="mailto:kontakt@kuverta.hr">kontakt@kuverta.hr</a>.
+    </p>
+
+    <h2>10. Dizajni i glazba</h2>
+    <p>
+      Dizajne i ilustracije čestitki izradili smo mi. Vi i primatelj sliku čestitke smijete spremiti i dijeliti u osobne svrhe, ali ne
+      smijete ilustracije prodavati ni koristiti kao vlastite predloške. Melodije su snimke koje su javno dobro.
+    </p>
+
+    <h2>11. Dostupnost i odgovornost</h2>
+    <p>
+      Trudimo se da stranica radi bez prekida, ali ponekad mora stati zbog održavanja ili kvara kod dobavljača (hosting, baza, plaćanje). Ne
+      odgovaramo za neizravnu štetu ni za štetu zbog više sile ili kvara izvan našeg nadzora, osim kad se odgovornost prema zakonu ne može
+      isključiti. Vaša zakonska prava kao potrošača ovim uvjetima nisu ograničena.
+    </p>
+
+    <h2>12. Izmjene uvjeta</h2>
+    <p>
+      Ako promijenimo uvjete, nova verzija vrijedi od datuma objave na ovoj stranici. Za čestitku koju ste već platili vrijede uvjeti iz
+      trenutka plaćanja.
+    </p>
+
+    <p class="p-small"><a href="/privatnost">Pravila privatnosti</a></p>
+  </article>
+</Base>

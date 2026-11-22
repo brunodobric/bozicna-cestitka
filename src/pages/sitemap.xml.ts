@@ -5,7 +5,7 @@ import { TEME } from '../lib/teme';
 
 export const GET: APIRoute = ({ url }) => {
   const o = siteOrigin(url);
-  const adrese = ['/', ...TEME.map((t) => `/primjer/${t.key}`)];
+  const adrese = ['/', ...TEME.map((t) => `/primjer/${t.key}`), '/uvjeti', '/privatnost'];
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${adrese.map((a) => `  <url><loc>${o}${a}</loc></url>`).join('\n')}
