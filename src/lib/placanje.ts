@@ -11,6 +11,7 @@
 import { env } from "cloudflare:workers";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { ponudaZaKomada, type Ponuda } from "./cijena";
+import { posaljiMailKupcu } from "./mail";
 
 const read = (name: string) => {
   const v = (env as unknown as Record<string, unknown>)[name];
@@ -173,6 +174,7 @@ export async function potvrdiPovratak(
   user: User,
   cestitkaId: string,
   sessionId: string,
+  origin: string,
 ): Promise<boolean> {
   if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return false;
   const s = (await stripe(
@@ -183,7 +185,9 @@ export async function potvrdiPovratak(
     s.metadata?.owner_id !== user.id
   )
     return false;
-  return await potvrdi(supabase, s);
+  const ok = await potvrdi(supabase, s);
+  if (ok) await posaljiMailKupcu(supabase, s.id, origin);
+  return ok;
 }
 
 const hex = (buf: ArrayBuffer) =>
@@ -233,6 +237,7 @@ export async function provjeriPotpis(
 export async function obradiDogadaj(
   supabase: SupabaseClient,
   event: { type?: string; data?: { object?: unknown } },
+  origin: string,
 ): Promise<void> {
   if (
     event.type !== "checkout.session.completed" &&
@@ -240,5 +245,6 @@ export async function obradiDogadaj(
   )
     return;
   const s = event.data?.object as Session | undefined;
-  if (s?.id) await potvrdi(supabase, s);
+  if (s?.id && (await potvrdi(supabase, s)))
+    await posaljiMailKupcu(supabase, s.id, origin);
 }

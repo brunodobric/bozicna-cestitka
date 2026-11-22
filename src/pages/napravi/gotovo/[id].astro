@@ -4,6 +4,7 @@
 // Stranica radi samo na uređaju na kojem je čestitka napravljena (RLS: samo vlasnik).
 import Base from '../../../layouts/Base.astro';
 import { potvrdiPovratak } from '../../../lib/placanje';
+import { siteOrigin } from '../../../lib/seo';
 import '../../../styles/uredivac.css';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -15,7 +16,7 @@ const sessionId = Astro.url.searchParams.get('session_id') ?? '';
 let greska = false;
 if (sessionId) {
   try {
-    await potvrdiPovratak(supabase, user, id, sessionId);
+    await potvrdiPovratak(supabase, user, id, sessionId, siteOrigin(Astro.url));
   } catch (e) {
     console.error('placanje gotovo', e);
     greska = true;
