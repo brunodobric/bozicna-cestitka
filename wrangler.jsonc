@@ -1,6 +1,8 @@
 {
   "name": "bozicna-cestitka",
   "keep_vars": true,
-  // Vlastita ulazna točka: Astro za stranice; kasnije i cron za brisanje isteklih čestitki (src/worker.ts).
-  "main": "./src/worker.ts"
+  // Vlastita ulazna točka: Astro za stranice i cron za brisanje isteklih čestitki (src/worker.ts).
+  "main": "./src/worker.ts",
+  // Svaki dan u 3:15 po UTC-u (4:15 ili 5:15 po našem vremenu).
+  "triggers": { "crons": ["15 3 * * *"] }
 }

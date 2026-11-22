@@ -42,6 +42,7 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
   {
     primjer && (
       <div class="gumbi">
+        <slot name="radnje" />
         <a class="gumb" href={natrag.href}>
           {natrag.tekst}
         </a>

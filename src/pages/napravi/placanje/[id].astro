@@ -1,0 +1,86 @@
+---
+// Odabir ponude prije plaćanja: jedna čestitka ili paket od 5 ili 10. Ako kupac ima preostalih
+// čestitki iz paketa, nudi se da jednu iskoristi bez plaćanja.
+import Base from '../../../layouts/Base.astro';
+import { placanjeDostupno, testnoPlacanje } from '../../../lib/placanje';
+import { PONUDE, iznos } from '../../../lib/cijena';
+import '../../../styles/uredivac.css';
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const id = Astro.params.id ?? '';
+const { supabase, user } = Astro.locals;
+if (!UUID.test(id) || !user) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
+
+const { data: c } = await supabase.from('cestitke').select('id, placeno, poruka').eq('id', id).maybeSingle();
+if (!c) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
+if (c.placeno) return Astro.redirect(`/napravi/gotovo/${id}`);
+if (!c.poruka?.trim()) return Astro.redirect(`/napravi?id=${id}`);
+
+const { data: paket } = await supabase.from('paketi').select('preostalo').maybeSingle();
+const izPaketa = paket?.preostalo ?? 0;
+const mozePlatiti = placanjeDostupno();
+const poKomadu = (centi: number, n: number) => iznos(Math.round(centi / n));
+---
+
+<Base title="Plaćanje čestitke" noindex>
+  <div class="g">
+    <h1>Pošaljite čestitku</h1>
+    {
+      izPaketa > 0 && (
+        <form method="post" action="/napravi/plati" class="g-paket">
+          <input type="hidden" name="id" value={c.id} />
+          <input type="hidden" name="ponuda" value="iz-paketa" />
+          <p>
+            Iz paketa vam je ostalo još <strong>{izPaketa}</strong> {izPaketa === 1 ? 'čestitka' : izPaketa < 5 ? 'čestitke' : 'čestitki'}.
+          </p>
+          <button type="submit" class="p-btn">
+            Iskoristi jednu iz paketa
+          </button>
+        </form>
+      )
+    }
+    {
+      mozePlatiti ? (
+        <form method="post" action="/napravi/plati" class="g-ponude">
+          <input type="hidden" name="id" value={c.id} />
+          {izPaketa > 0 && <p class="p-muted">Ili kupite novu:</p>}
+          {PONUDE.map((p, i) => (
+            <label class="g-ponuda">
+              <input type="radio" name="ponuda" value={p.key} checked={i === 0} />
+              <span class="g-ponuda__naziv">{p.komada === 1 ? 'Jedna čestitka' : `Paket od ${p.komada} čestitki`}</span>
+              <span class="g-ponuda__cijena">{iznos(p.centi)}</span>
+              {p.komada > 1 && (
+                <span class="g-ponuda__opis">
+                  {poKomadu(p.centi, p.komada)} po čestitki. Ova se otključa odmah, ostale koristite na ovom uređaju.
+                </span>
+              )}
+            </label>
+          ))}
+          <p class="p-muted g-mala">
+            Ista cijena s fotografijom i bez nje. Svaka čestitka vrijedi 30 dana od plaćanja, a zatim se briše zajedno s
+            fotografijom.{testnoPlacanje() && ' Plaćanje je testno: koristite Stripeovu testnu karticu 4242 4242 4242 4242.'}
+          </p>
+          <div class="g-gumbi">
+            <button type="submit" class="p-btn">
+              Plati karticom
+            </button>
+            <a class="p-btn p-btn--ghost" href={`/napravi/pregled/${c.id}`}>
+              Natrag na pregled
+            </a>
+          </div>
+        </form>
+      ) : (
+        izPaketa === 0 && (
+          <>
+            <p class="p-muted">Plaćanje još nije uključeno.</p>
+            <p>
+              <a class="p-btn p-btn--ghost" href={`/napravi/pregled/${c.id}`}>
+                Natrag na pregled
+              </a>
+            </p>
+          </>
+        )
+      )
+    }
+  </div>
+</Base>
