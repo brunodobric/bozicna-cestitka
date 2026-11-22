@@ -47,6 +47,7 @@ npm run build
 - Sigurnost je u bazi: RLS na tablicama, primatelj i uplata idu kroz `SECURITY DEFINER` funkcije, `service_role` se ne koristi.
 - Okidač `cestitka_guard`: kupac ne može sam uključiti `placeno`, mijenjati tokene ni `brisanje_nakon`; funkcije baze to rade uz oznaku `cestitka.sustav`.
 - `002_devet_dizajna.sql` proširuje popis dopuštenih tema na devet. **Bruno je mora pokrenuti u SQL Editoru prije nego uređivač počne spremati nove dizajne** (primjeri rade i bez nje).
+- `003_duljina_poruke.sql` ograničava poruku na 320 znakova; pojedini dizajn traži manje (`najvisePoruka` u `teme.ts`, 180 do 320) i to mora provjeravati uređivač. I nju Bruno pokreće ručno.
 - `001_cestitke.sql` je provjerena na lokalnom Postgresu 16 sa zamjenskim auth/storage shemama (plaćanje, krivi ključ, RLS između kupaca, prvo otvaranje, prijenos tajnim linkom, istek).
 
 ## Dizajn i provjera
@@ -65,4 +66,4 @@ npm run build
 Gotovo (21. 11. 2026.): koraci 1 do 4 plana (kostur, tri teme, javna čestitka, spremanje slike), objavljeno na workers.dev.
 Gotovo (22. 11. 2026.): božićna početna, devet dizajna čestitki, čestitka kao jedna slika u kuverti, na ekranu i u galeriji.
 
-**Otvoreno / čeka Brunu:** migracija `002_devet_dizajna.sql`, CAPTCHA (Turnstile) u Supabase Authu, `placanje_secret` (korak 7), odluke iz odjeljka 9 (cijena, trajanje čestitke, ime i domena, obavijest kupcu), proba na pravom iPhoneu i Androidu.
+**Otvoreno / čeka Brunu:** migracije `002_devet_dizajna.sql` i `003_duljina_poruke.sql`, CAPTCHA (Turnstile) u Supabase Authu, `placanje_secret` (korak 7), odluke iz odjeljka 9 (cijena, trajanje čestitke, ime i domena, obavijest kupcu), proba na pravom iPhoneu i Androidu.

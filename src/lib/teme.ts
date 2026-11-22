@@ -32,6 +32,7 @@ export type Tema = {
   pecat: string; // znak na voštanom pečatu
   bg: string; // boja pozadine (theme-color, prvo iscrtavanje)
   deco: 'bozikovina' | 'imela' | 'bor'; // grančica ispod pečata
+  najvisePoruka: number; // najviše znakova poruke da slova ostanu čitljiva na mobitelu (uređivač mora poštovati)
   vars: Record<string, string>;
   karta: KartaOpis;
 };
@@ -107,6 +108,7 @@ export const TEME: Tema[] = [
     preload: 'great-vibes',
     pecat: '★',
     bg: '#143627',
+    najvisePoruka: 320,
     deco: 'bozikovina',
     vars: varijable({
       bg: '#143627', glow: '#1b4332', gumb: '#d4af37', gumbTekst: '#143627',
@@ -127,6 +129,7 @@ export const TEME: Tema[] = [
     preload: 'parisienne',
     pecat: '❄',
     bg: '#14213d',
+    najvisePoruka: 260,
     deco: 'bozikovina',
     vars: varijable({
       bg: '#14213d', glow: '#23365e', gumb: '#e6eefa', gumbTekst: '#14213d',
@@ -147,6 +150,7 @@ export const TEME: Tema[] = [
     preload: 'playfair-italic',
     pecat: '✦',
     bg: '#f6f3ee',
+    najvisePoruka: 320,
     deco: 'bozikovina',
     vars: varijable({
       bg: '#f6f3ee', glow: '#ffffff', svijetla: true, gumb: '#b3262e', gumbTekst: '#ffffff',
@@ -167,6 +171,7 @@ export const TEME: Tema[] = [
     preload: 'pinyon',
     pecat: '✦',
     bg: '#1b4332',
+    najvisePoruka: 240,
     deco: 'imela',
     vars: varijable({
       bg: '#1b4332', glow: '#2a5a45', gumb: '#d4af37', gumbTekst: '#143627',
@@ -187,6 +192,7 @@ export const TEME: Tema[] = [
     preload: 'great-vibes',
     pecat: '★',
     bg: '#26324a',
+    najvisePoruka: 200,
     deco: 'bor',
     vars: varijable({
       bg: '#26324a', glow: '#3a4a6b', gumb: '#d4af37', gumbTekst: '#1c2536',
@@ -207,6 +213,7 @@ export const TEME: Tema[] = [
     preload: 'berkshire',
     pecat: '★',
     bg: '#7a0c0c',
+    najvisePoruka: 180,
     deco: 'bor',
     vars: varijable({
       bg: '#7a0c0c', glow: '#a61c1c', gumb: '#faf6f0', gumbTekst: '#7a0c0c',
@@ -227,6 +234,7 @@ export const TEME: Tema[] = [
     preload: 'berkshire',
     pecat: '❄',
     bg: '#3f2c1b',
+    najvisePoruka: 180,
     deco: 'bor',
     vars: varijable({
       bg: '#3f2c1b', glow: '#5f4429', gumb: '#faf6f0', gumbTekst: '#3f2c1b',
@@ -247,6 +255,7 @@ export const TEME: Tema[] = [
     preload: 'pinyon',
     pecat: '★',
     bg: '#0a1712',
+    najvisePoruka: 220,
     deco: 'bozikovina',
     vars: varijable({
       bg: '#0a1712', glow: '#143627', gumb: '#d4af37', gumbTekst: '#0a1712',
@@ -267,6 +276,7 @@ export const TEME: Tema[] = [
     preload: 'parisienne',
     pecat: '✦',
     bg: '#efe7d6',
+    najvisePoruka: 200,
     deco: 'bor',
     vars: varijable({
       bg: '#efe7d6', glow: '#fbf7ee', svijetla: true, gumb: '#8b0000', gumbTekst: '#faf6f0',
@@ -281,6 +291,9 @@ export const TEME: Tema[] = [
     },
   },
 ];
+
+// Najdulja poruka koju baza prima (check u 003_duljina_poruke.sql); pojedini dizajn može tražiti kraću.
+export const NAJVISE_PORUKA = Math.max(...TEME.map((t) => t.najvisePoruka));
 
 export function tema(key: string | null | undefined): Tema {
   return TEME.find((t) => t.key === key) ?? TEME[0];
