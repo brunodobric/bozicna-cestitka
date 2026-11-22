@@ -12,6 +12,7 @@ import { env } from "cloudflare:workers";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { ponudaZaKomada, type Ponuda } from "./cijena";
 import { posaljiMailKupcu } from "./mail";
+import { izdajRacun, stornirajRacun } from "./fiskalizacija";
 
 const read = (name: string) => {
   const v = (env as unknown as Record<string, unknown>)[name];
@@ -142,7 +143,7 @@ type Session = {
   currency?: string | null;
   livemode?: boolean;
   metadata?: Record<string, string> | null;
-  customer_details?: { email?: string | null } | null;
+  customer_details?: { email?: string | null; name?: string | null } | null;
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -167,6 +168,35 @@ async function potvrdi(supabase: SupabaseClient, s: Session): Promise<boolean> {
   return true;
 }
 
+// Račun za plaćenu sesiju (fiskalizacija, kao u Kuverti). Baca ako servis nije dostupan.
+async function fiskaliziraj(s: Session): Promise<"izdan" | "preskoceno" | "odbijen"> {
+  if (s.payment_status !== "paid") return "preskoceno";
+  const p = ponudaZaKomada(s.metadata?.komada ?? "1");
+  return await izdajRacun({
+    sessionId: s.id,
+    iznosCenti: s.amount_total ?? 0,
+    testna: s.livemode === false,
+    opis: p?.naziv ?? "Božićna čestitka u kuverti",
+    email: s.customer_details?.email ?? "",
+    ime: s.customer_details?.name ?? "",
+  });
+}
+
+// Nakon potvrde: račun, pa mail kupcu (s računom u privitku kad je izdan).
+// Kad servis za račune ne odgovara, mail se ne šalje: webhook baci grešku, Stripe ga ponovi,
+// a mail ode tek s računom. S povratka se greška samo zapiše, jer webhook dolazi ionako.
+async function nakonUplate(supabase: SupabaseClient, s: Session, origin: string, izWebhooka: boolean): Promise<void> {
+  let racun: "izdan" | "preskoceno" | "odbijen";
+  try {
+    racun = await fiskaliziraj(s);
+  } catch (e) {
+    if (izWebhooka) throw e;
+    console.error("fiskalizacija (povratak)", e);
+    return;
+  }
+  await posaljiMailKupcu(supabase, s.id, origin, racun === "izdan");
+}
+
 // Povratak s naplate: sesiju provjeravamo izravno kod Stripea, pa kupac ne čeka webhook.
 // Vrijedi samo za sesiju te čestitke i tog kupca.
 export async function potvrdiPovratak(
@@ -186,7 +216,7 @@ export async function potvrdiPovratak(
   )
     return false;
   const ok = await potvrdi(supabase, s);
-  if (ok) await posaljiMailKupcu(supabase, s.id, origin);
+  if (ok) await nakonUplate(supabase, s, origin, false);
   return ok;
 }
 
@@ -233,18 +263,42 @@ export async function provjeriPotpis(
   });
 }
 
-// Događaj iz webhooka: dovršena (ili naknadno potvrđena) naplata.
+type Refund = { id: string; amount: number; status?: string };
+
+// Povrat novca (i djelomičan): za svaki povrat te naplate izdaje se storno računa, kao u Kuverti.
+// Prolazi kroz sve povrate naplate, pa ponovljen događaj ništa ne udvostručuje.
+async function stornirajPovrate(paymentIntent: string): Promise<void> {
+  const pi = encodeURIComponent(paymentIntent);
+  const sesije = (await stripe(`checkout/sessions?payment_intent=${pi}&limit=1`)) as unknown as { data?: Session[] };
+  const s = sesije.data?.[0];
+  // Stripe račun dijeli Kuverta; njezine uplate (bez cestitka_id) ovdje se ne diraju.
+  if (!s?.id || !UUID.test(s.metadata?.cestitka_id ?? "")) return;
+  await fiskaliziraj(s);
+  const povrati = (await stripe(`refunds?payment_intent=${pi}&limit=100`)) as unknown as { data?: Refund[] };
+  for (const r of povrati.data ?? []) {
+    if (r.status !== "succeeded" && r.status !== "pending") continue;
+    await stornirajRacun({ sessionId: s.id, refundId: r.id, iznosCenti: r.amount, testna: s.livemode === false });
+  }
+}
+
+const idNaplate = (v: unknown) => (typeof v === "string" && /^pi_[A-Za-z0-9]+$/.test(v) ? v : "");
+
+// Događaj iz webhooka: dovršena (ili naknadno potvrđena) naplata te povrati novca.
 export async function obradiDogadaj(
   supabase: SupabaseClient,
   event: { type?: string; data?: { object?: unknown } },
   origin: string,
 ): Promise<void> {
+  if (event.type === "charge.refunded" || event.type === "refund.created" || event.type === "refund.updated") {
+    const pi = idNaplate((event.data?.object as { payment_intent?: unknown } | undefined)?.payment_intent);
+    if (pi) await stornirajPovrate(pi);
+    return;
+  }
   if (
     event.type !== "checkout.session.completed" &&
     event.type !== "checkout.session.async_payment_succeeded"
   )
     return;
   const s = event.data?.object as Session | undefined;
-  if (s?.id && (await potvrdi(supabase, s)))
-    await posaljiMailKupcu(supabase, s.id, origin);
+  if (s?.id && (await potvrdi(supabase, s))) await nakonUplate(supabase, s, origin, true);
 }
