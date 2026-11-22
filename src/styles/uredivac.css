@@ -422,3 +422,95 @@
   color: var(--p-text);
   font: 500 0.9375rem/1.3 var(--p-font-body);
 }
+
+/* Plaćanje na našoj stranici (/napravi/placanje/<id>?ponuda=...) */
+.pl-sazetak {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem 1rem;
+  align-items: start;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--p-border);
+  border-radius: 8px;
+  background: var(--p-surface);
+}
+.pl-sazetak__naziv {
+  display: block;
+  font-weight: 600;
+}
+.pl-sazetak__opis {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--p-muted);
+}
+.pl-sazetak__cijena {
+  font: 600 1.25rem/1.2 var(--p-font-body);
+  color: var(--p-primary);
+}
+.pl-sazetak__promijeni {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: 0.875rem;
+  color: var(--p-green);
+}
+.pl-forma {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+.pl-email span {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+.pl-email input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem;
+  border: 1px solid var(--p-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--p-text);
+  font: 400 1rem/1.3 var(--p-font-body);
+}
+.pl-email input:focus {
+  outline: none;
+  border-color: var(--p-primary);
+  box-shadow: 0 0 0 3px rgba(166, 28, 28, 0.15);
+}
+.pl-element {
+  min-height: 200px;
+}
+.pl-ucitava {
+  margin: 0;
+  color: var(--p-muted);
+  font-size: 0.9375rem;
+}
+.pl-gumb {
+  width: 100%;
+}
+.pl-gumb:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.pl-napomena {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--p-muted);
+  text-align: center;
+}
+.pl-zamjena {
+  text-align: center;
+}
+.pl-zamjena button {
+  background: none;
+  border: 0;
+  padding: 0.25rem;
+  color: var(--p-muted);
+  font: 400 0.8125rem/1.4 var(--p-font-body);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}

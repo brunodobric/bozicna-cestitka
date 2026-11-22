@@ -1,9 +1,13 @@
 ---
-// Odabir ponude prije plaćanja: jedna čestitka ili paket od 5 ili 10. Ako kupac ima preostalih
-// čestitki iz paketa, nudi se da jednu iskoristi bez plaćanja.
+// Plaćanje u dva koraka na istoj adresi:
+// 1. odabir ponude (jedna čestitka ili paket od 5 ili 10; ako kupac ima preostalih iz paketa, nudi se da jednu iskoristi),
+// 2. ?ponuda=<ključ>: Stripeova polja za karticu na našoj stranici (Payment Element uz Checkout sesiju, ui_mode "elements").
+// Bez STRIPE_PUBLISHABLE_KEY ili kad se polja ne učitaju, plaća se na Stripeovoj stranici (POST /napravi/plati).
 import Base from '../../../layouts/Base.astro';
-import { placanjeDostupno, testnoPlacanje } from '../../../lib/placanje';
-import { PONUDE, iznos } from '../../../lib/cijena';
+import { otvoriUgradenuNaplatu, placanjeDostupno, stripeJavniKljuc, testnoPlacanje } from '../../../lib/placanje';
+import { PONUDE, iznos, ponuda as nadiPonudu } from '../../../lib/cijena';
+import jakartaLatin from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url';
+import jakartaExt from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-wght-normal.woff2?url';
 import '../../../styles/uredivac.css';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -20,67 +24,234 @@ const { data: paket } = await supabase.from('paketi').select('preostalo').maybeS
 const izPaketa = paket?.preostalo ?? 0;
 const mozePlatiti = placanjeDostupno();
 const poKomadu = (centi: number, n: number) => iznos(Math.round(centi / n));
+const javniKljuc = mozePlatiti ? stripeJavniKljuc() : '';
+const nazivPonude = (komada: number) => (komada === 1 ? 'Jedna čestitka' : `Paket od ${komada} čestitki`);
+
+// Drugi korak: odabrana ponuda i polja za karticu.
+const odabrana = mozePlatiti && javniKljuc ? nadiPonudu(Astro.url.searchParams.get('ponuda')) : null;
+let clientSecret = '';
+if (odabrana) {
+  try {
+    clientSecret = await otvoriUgradenuNaplatu(user, id, odabrana, Astro.url.origin);
+  } catch (e) {
+    console.error('placanje stranica', e);
+    return Astro.redirect(`/napravi/pregled/${id}?placanje=greska`);
+  }
+}
+
+const LATIN =
+  'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD';
+const LATIN_EXT =
+  'U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF';
+// Font za Stripeova polja: Stripeov okvir ga učitava s naše domene (CORS za /_astro/*.woff2 je u public/_headers).
+const fontovi = ['400', '600'].flatMap((weight) =>
+  [
+    [jakartaLatin, LATIN],
+    [jakartaExt, LATIN_EXT],
+  ].map(([src, unicodeRange]) => ({ family: 'Plus Jakarta Sans', src: `url(${new URL(src, Astro.url.origin).href})`, weight, unicodeRange })),
+);
+const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
 ---
 
 <Base title="Plaćanje čestitke" noindex>
-  <div class="g">
-    <h1>Pošaljite čestitku</h1>
-    {
-      izPaketa > 0 && (
-        <form method="post" action="/napravi/plati" class="g-paket">
-          <input type="hidden" name="id" value={c.id} />
-          <input type="hidden" name="ponuda" value="iz-paketa" />
-          <p>
-            Iz paketa vam je ostalo još <strong>{izPaketa}</strong> {izPaketa === 1 ? 'čestitka' : izPaketa < 5 ? 'čestitke' : 'čestitki'}.
-          </p>
-          <button type="submit" class="p-btn">
-            Iskoristi jednu iz paketa
+  {
+    odabrana ? (
+      <div class="g">
+        <h1>Plaćanje</h1>
+        <div class="pl-sazetak">
+          <div>
+            <span class="pl-sazetak__naziv">{nazivPonude(odabrana.komada)}</span>
+            <span class="pl-sazetak__opis">
+              {odabrana.komada > 1
+                ? `Ova čestitka se otključa odmah, a preostale (${odabrana.komada - 1}) koristite na ovom uređaju.`
+                : 'Čestitka vrijedi 30 dana od plaćanja.'}
+            </span>
+          </div>
+          <span class="pl-sazetak__cijena">{iznos(odabrana.centi)}</span>
+          <a class="pl-sazetak__promijeni" href={`/napravi/placanje/${c.id}`}>
+            Promijeni
+          </a>
+        </div>
+        <form id="pl-forma" class="pl-forma" data-podaci={podaci} novalidate>
+          <label class="pl-email">
+            <span>E-mail za potvrdu uplate</span>
+            <input id="pl-email" type="email" name="email" autocomplete="email" inputmode="email" required />
+          </label>
+          <div id="pl-element" class="pl-element" aria-busy="true">
+            <p class="pl-ucitava">Učitava se obrazac za plaćanje…</p>
+          </div>
+          <p id="pl-poruka" class="u-greska" role="alert" hidden />
+          {testnoPlacanje() && <p class="p-muted g-mala">Plaćanje je testno: kartica 4242 4242 4242 4242, bilo koji budući datum i CVC.</p>}
+          <button type="submit" id="pl-gumb" class="p-btn pl-gumb" disabled>
+            Plati {iznos(odabrana.centi)}
           </button>
         </form>
-      )
-    }
-    {
-      mozePlatiti ? (
-        <form method="post" action="/napravi/plati" class="g-ponude">
+        <p class="pl-napomena">Plaćanje obrađuje Stripe. Podatke kartice ne spremamo.</p>
+        <form method="post" action="/napravi/plati" class="pl-zamjena">
           <input type="hidden" name="id" value={c.id} />
-          {izPaketa > 0 && <p class="p-muted">Ili kupite novu:</p>}
-          {PONUDE.map((p, i) => (
-            <label class="g-ponuda">
-              <input type="radio" name="ponuda" value={p.key} checked={i === 0} />
-              <span class="g-ponuda__naziv">{p.komada === 1 ? 'Jedna čestitka' : `Paket od ${p.komada} čestitki`}</span>
-              <span class="g-ponuda__cijena">{iznos(p.centi)}</span>
-              {p.komada > 1 && (
-                <span class="g-ponuda__opis">
-                  {poKomadu(p.centi, p.komada)} po čestitki. Ova se otključa odmah, ostale koristite na ovom uređaju.
-                </span>
-              )}
-            </label>
-          ))}
-          <p class="p-muted g-mala">
-            Ista cijena s fotografijom i bez nje. Svaka čestitka vrijedi 30 dana od plaćanja, a zatim se briše zajedno s
-            fotografijom.{testnoPlacanje() && ' Plaćanje je testno: koristite Stripeovu testnu karticu 4242 4242 4242 4242.'}
-          </p>
-          <div class="g-gumbi">
-            <button type="submit" class="p-btn">
-              Plati karticom
-            </button>
-            <a class="p-btn p-btn--ghost" href={`/napravi/pregled/${c.id}`}>
-              Natrag na pregled
-            </a>
-          </div>
+          <button type="submit" name="ponuda" value={odabrana.key}>
+            Obrazac se ne učitava? Platite na Stripeovoj stranici
+          </button>
         </form>
-      ) : (
-        izPaketa === 0 && (
-          <>
-            <p class="p-muted">Plaćanje još nije uključeno.</p>
-            <p>
-              <a class="p-btn p-btn--ghost" href={`/napravi/pregled/${c.id}`}>
-                Natrag na pregled
-              </a>
-            </p>
-          </>
-        )
-      )
-    }
-  </div>
+        <script is:inline src="https://js.stripe.com/endive/stripe.js" />
+      </div>
+    ) : (
+      <div class="g">
+        <h1>Pošaljite čestitku</h1>
+        {
+          izPaketa > 0 && (
+            <form method="post" action="/napravi/plati" class="g-paket">
+              <input type="hidden" name="id" value={c.id} />
+              <input type="hidden" name="ponuda" value="iz-paketa" />
+              <p>
+                Iz paketa vam je ostalo još <strong>{izPaketa}</strong> {izPaketa === 1 ? 'čestitka' : izPaketa < 5 ? 'čestitke' : 'čestitki'}.
+              </p>
+              <button type="submit" class="p-btn">
+                Iskoristi jednu iz paketa
+              </button>
+            </form>
+          )
+        }
+        {
+          mozePlatiti ? (
+            <form method={javniKljuc ? 'get' : 'post'} action={javniKljuc ? `/napravi/placanje/${c.id}` : '/napravi/plati'} class="g-ponude">
+              {!javniKljuc && <input type="hidden" name="id" value={c.id} />}
+              {izPaketa > 0 && <p class="p-muted">Ili kupite novu:</p>}
+              {PONUDE.map((p, i) => (
+                <label class="g-ponuda">
+                  <input type="radio" name="ponuda" value={p.key} checked={i === 0} />
+                  <span class="g-ponuda__naziv">{nazivPonude(p.komada)}</span>
+                  <span class="g-ponuda__cijena">{iznos(p.centi)}</span>
+                  {p.komada > 1 && (
+                    <span class="g-ponuda__opis">
+                      {poKomadu(p.centi, p.komada)} po čestitki. Ova se otključa odmah, ostale koristite na ovom uređaju.
+                    </span>
+                  )}
+                </label>
+              ))}
+              <p class="p-muted g-mala">
+                Ista cijena s fotografijom i bez nje. Svaka čestitka vrijedi 30 dana od plaćanja, a zatim se briše zajedno s
+                fotografijom.{testnoPlacanje() && ' Plaćanje je testno: koristite Stripeovu testnu karticu 4242 4242 4242 4242.'}
+              </p>
+              <div class="g-gumbi">
+                <button type="submit" class="p-btn">
+                  {javniKljuc ? 'Nastavi na plaćanje' : 'Plati karticom'}
+                </button>
+                <a class="p-btn p-btn--ghost" href={`/napravi/pregled/${c.id}`}>
+                  Natrag na pregled
+                </a>
+              </div>
+            </form>
+          ) : (
+            izPaketa === 0 && (
+              <>
+                <p class="p-muted">Plaćanje još nije uključeno.</p>
+                <p>
+                  <a class="p-btn p-btn--ghost" href={`/napravi/pregled/${c.id}`}>
+                    Natrag na pregled
+                  </a>
+                </p>
+              </>
+            )
+          )
+        }
+      </div>
+    )
+  }
 </Base>
+
+<script>
+  // Stripeova polja za karticu (samo u drugom koraku, kad postoji #pl-forma).
+  type Podaci = { javniKljuc: string; clientSecret: string; fontovi: object[] };
+  const forma = document.getElementById('pl-forma') as HTMLFormElement | null;
+
+  if (forma) {
+    const gumb = document.getElementById('pl-gumb') as HTMLButtonElement;
+    const poruka = document.getElementById('pl-poruka') as HTMLParagraphElement;
+    const element = document.getElementById('pl-element') as HTMLDivElement;
+    const email = document.getElementById('pl-email') as HTMLInputElement;
+    const tekstGumba = gumb.textContent ?? '';
+    const podaci = JSON.parse(forma.dataset.podaci ?? '{}') as Podaci;
+    const pokazi = (t: string) => {
+      poruka.textContent = t;
+      poruka.hidden = !t;
+    };
+    const nijeUcitano = 'Obrazac za plaćanje se nije učitao. Osvježite stranicu ili platite na Stripeovoj stranici (poveznica ispod).';
+
+    // Izgled polja usklađen s platform.css: krem pozadina stranice, tamnozelen tekst, crvena za odabir, Plus Jakarta Sans.
+    const appearance = {
+      theme: 'stripe',
+      variables: {
+        colorPrimary: '#a61c1c',
+        colorBackground: '#ffffff',
+        colorText: '#143627',
+        colorTextSecondary: '#4d5f55',
+        colorDanger: '#8b0000',
+        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+        fontSizeBase: '16px',
+        borderRadius: '6px',
+        focusBoxShadow: '0 0 0 3px rgba(166, 28, 28, 0.15)',
+      },
+      rules: {
+        '.Input': { borderColor: '#e8dcc4', boxShadow: 'none' },
+        '.Input:focus': { borderColor: '#a61c1c' },
+        '.Tab': { borderColor: '#e8dcc4', boxShadow: 'none' },
+        '.Tab--selected': { borderColor: '#a61c1c', boxShadow: '0 0 0 1px #a61c1c' },
+        '.Label': { color: '#143627', fontWeight: '500' },
+      },
+    };
+
+    const pokreni = async () => {
+      const Stripe = (window as unknown as { Stripe?: (k: string, o: object) => any }).Stripe;
+      if (!Stripe) {
+        element.removeAttribute('aria-busy');
+        element.innerHTML = '';
+        pokazi(nijeUcitano);
+        return;
+      }
+      const stripe = Stripe(podaci.javniKljuc, { locale: 'hr' });
+      const checkout = stripe.initCheckoutElementsSdk({
+        clientSecret: podaci.clientSecret,
+        elementsOptions: { appearance, fonts: podaci.fontovi },
+      });
+      const paymentElement = checkout.createPaymentElement();
+      paymentElement.on('ready', () => {
+        element.removeAttribute('aria-busy');
+        element.querySelector('.pl-ucitava')?.remove();
+        gumb.disabled = false;
+      });
+      paymentElement.mount('#pl-element');
+
+      const ucitano = await checkout.loadActions();
+      if (ucitano.type !== 'success') {
+        pokazi('Plaćanje trenutno ne radi. Pokušajte ponovno za minutu.');
+        return;
+      }
+      const { actions } = ucitano;
+
+      forma.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (gumb.disabled) return;
+        pokazi('');
+        if (!email.checkValidity()) {
+          pokazi('Upišite ispravnu e-mail adresu.');
+          email.focus();
+          return;
+        }
+        gumb.disabled = true;
+        gumb.textContent = 'Plaćanje u tijeku…';
+        const em = await actions.updateEmail(email.value.trim());
+        // Nakon plaćanja (i potvrde banke, ako je traži) Stripe sam vodi na stranicu s linkom.
+        const r = em?.type === 'error' ? em : await actions.confirm();
+        if (r.type === 'error') pokazi(r.error?.message ?? 'Plaćanje nije uspjelo. Provjerite podatke kartice.');
+        gumb.disabled = false;
+        gumb.textContent = tekstGumba;
+      });
+    };
+
+    pokreni().catch((e) => {
+      console.error(e);
+      pokazi(nijeUcitano);
+    });
+  }
+</script>
