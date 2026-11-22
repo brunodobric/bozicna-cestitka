@@ -11,6 +11,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const odgovor = (status: number, tijelo: Record<string, unknown>) =>
   new Response(JSON.stringify(tijelo), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 
+const ZAKLJUCANO = {
+  otvorena: 'Primatelj je već otvorio čestitku, pa se više ne može mijenjati.',
+  ime: 'Ime na kuverti ne može se mijenjati nakon plaćanja. Za drugu osobu napravite novu čestitku.',
+};
+
 export const POST: APIRoute = async ({ locals, request, url }) => {
   // Zahtjev mora doći s naše stranice (obrazac šalje fetch s istog podrijetla).
   const origin = request.headers.get('Origin');
@@ -46,13 +51,22 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
   let id: string;
   let staraSlika: string | null = null;
   if (UUID.test(trazeniId)) {
-    const { data: postojeca } = await supabase.from('cestitke').select('id, slika').eq('id', trazeniId).maybeSingle();
+    const { data: postojeca } = await supabase
+      .from('cestitke')
+      .select('id, slika, za, placeno, prvo_otvaranje')
+      .eq('id', trazeniId)
+      .maybeSingle();
     if (!postojeca) return odgovor(404, { greska: 'Ova čestitka nije pronađena na ovom uređaju. Napravite novu.', izgubljena: true });
+    // Zaključavanje (isto pravilo čuva i baza, okidač cestitka_zakljucavanje u migraciji 006).
+    if (postojeca.prvo_otvaranje) return odgovor(409, { greska: ZAKLJUCANO.otvorena });
+    if (postojeca.placeno && unos.za !== (postojeca.za ?? '')) return odgovor(409, { greska: ZAKLJUCANO.ime });
     id = postojeca.id;
     staraSlika = postojeca.slika;
     const { error } = await supabase.from('cestitke').update(unos).eq('id', id);
     if (error) {
       console.error('update cestitke', error.message);
+      if (error.message.includes('cestitka_otvorena')) return odgovor(409, { greska: ZAKLJUCANO.otvorena });
+      if (error.message.includes('ime_zakljucano')) return odgovor(409, { greska: ZAKLJUCANO.ime });
       return odgovor(500, { greska: 'Čestitka se nije spremila. Pokušajte ponovno.' });
     }
   } else {

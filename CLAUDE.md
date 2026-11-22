@@ -45,6 +45,8 @@ npm run build
 - `src/pages/napravi/spremi.ts`: POST iz uređivača. Prvo spremanje tiho prijavi kupca anonimno (`signInAnonymously`, kolačić httpOnly), pa insert ili update čestitke (RLS), upload fotografije u `cestitke-slike` (`src/lib/slike.ts`, tip po bajtovima), stara fotografija se briše. `/napravi?id=<uuid>` ponovno otvara čestitku na istom uređaju.
 - `src/pages/napravi/pregled/[id].astro`: kupčev pregled s kuvertom i glazbom prije plaćanja (samo vlasnik, kuverta svaki put).
 - **Plaćanje** (Stripe Checkout bez biblioteke, `src/lib/placanje.ts`): ponude u `src/lib/cijena.ts` (jedna 2,99 €, paket od 5 za 9,99 €, paket od 10 za 14,99 €, ista cijena s fotografijom i bez). Pregled → `/napravi/placanje/[id]` (odabir ponude ili "Iskoristi jednu iz paketa") → `/napravi/placanje/[id]?ponuda=<ključ>` (Stripeova polja za karticu na našoj stranici, Payment Element uz Checkout sesiju `ui_mode: elements`, naše boje i Plus Jakarta Sans; Bruno 22. 11. 2026.) → `/napravi/gotovo/[id]` (provjeri sesiju kod Stripea, link za primatelja, Kopiraj, Pošalji, tajni link). Rezerva bez `STRIPE_PUBLISHABLE_KEY` ili kad se polja ne učitaju: POST `/napravi/plati` na Stripeovu stranicu. Webhook `/stripe/webhook`. Paket: prva čestitka se otključa odmah, ostatak je u tablici `paketi` na kupčevom anonimnom računu. Testni ključ radi samo uz `PLACANJE_TESTNO=da`.
+- **Zaključavanje** (Bruno, 22. 11. 2026.): nakon plaćanja ime na kuverti (`za`) se ne mijenja, a kad primatelj prvi put otvori čestitku, ne mijenja se ništa. Čuva ga baza (okidač `cestitka_zakljucavanje`, migracija 006, i Storage pravila), a uređivač i `spremi.ts` to pokazuju.
+- **Spremi kao sliku:** na mobitelu (dodir bez miša) izbornik za dijeljenje i uputa za galeriju; na računalu odmah preuzimanje, bez upute (`jeMobitel()` u `scripts/cestitka.ts`).
 - `src/pages/uredi/[token].astro`: tajni link vraća čestitku i ostatak paketa na drugi uređaj (tek na gumb, zbog robota za pregled poveznica).
 - **Brisanje:** čestitka vrijedi 30 dana od plaćanja (`brisanje_nakon`, Bruno 22. 11. 2026.). Cron u `src/worker.ts` (`wrangler.jsonc` triggers, 3:15 UTC) zove `ocisti_istekle` i briše fotografije bez čestitke (`src/lib/ciscenje.ts`). Neplaćene čestitke nedirnute 30 dana također se brišu.
 - `src/middleware.ts`: Supabase klijent po zahtjevu, CSP, `noindex` i `no-store` na `/c/`, `/napravi`, `/uredi`.
@@ -58,6 +60,7 @@ npm run build
 - `003_duljina_poruke.sql` ograničava poruku na 320 znakova; pojedini dizajn traži manje (`najvisePoruka` u `teme.ts`, 180 do 320) i to mora provjeravati uređivač. I nju Bruno pokreće ručno.
 - `004_melodija.sql` dodaje stupac `melodija` i ponovno stvara `javna_cestitka` (vraća i melodiju). Bruno je pokreće ručno; dok ne pokrene, čestitke kupaca rade bez glazbe.
 - `005_placanje_i_brisanje.sql`: rok 30 dana u `potvrdi_uplatu_cestitke` (novi parametar `p_komada`), tablica `paketi`, `iskoristi_paket`, `preuzmi_cestitku` s paketom, `ocisti_istekle` i Storage pravila za brisanje fotografija bez čestitke. Na kraju ispiše `placanje_secret` za Cloudflare. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
+- `006_zakljucavanje.sql`: okidač `cestitka_zakljucavanje` i Storage pravila bez zamjene ili brisanja fotografije otvorene čestitke. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
 - `001_cestitke.sql` je provjerena na lokalnom Postgresu 16 sa zamjenskim auth/storage shemama (plaćanje, krivi ključ, RLS između kupaca, prvo otvaranje, prijenos tajnim linkom, istek).
 
 ## Dizajn i provjera
@@ -84,4 +87,6 @@ Gotovo (22. 11. 2026.): uređivač (korak 5): `/napravi`, spremanje s anonimnom 
 Gotovo (22. 11. 2026.): migracije 002, 003 i 004 pokrenute; uređivač spojen.
 Gotovo (22. 11. 2026.): plaćanje preko Stripea (jedna, paket 5, paket 10), rok 30 dana, dnevno brisanje, tajni link za drugi uređaj. Lokalno provjereno s lažnim Supabaseom; Stripe nije isproban.
 
-**Otvoreno / čeka Brunu:** migracija `005_placanje_i_brisanje.sql` (prvi pokušaj 22. 11. nije prošao, funkcije nema u bazi), `STRIPE_PUBLISHABLE_KEY` u Cloudflareu, proba plaćanja, mail kupcu s linkovima (Resend, čeka ime i domenu), proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime i domena, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.
+Gotovo (22. 11. 2026.): migracija 005 pokrenuta, Stripe ključevi i webhook upisani, plaćanje na našoj stranici spojeno.
+
+**Otvoreno / čeka Brunu:** migracija `006_zakljucavanje.sql`, proba plaćanja testnom karticom, isključiti suvišne načine plaćanja u Stripeu (MB WAY, Swish...), mail kupcu s linkovima (Resend, čeka ime i domenu), proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime i domena, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.

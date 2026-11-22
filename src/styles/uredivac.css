@@ -514,3 +514,12 @@
   text-underline-offset: 2px;
   cursor: pointer;
 }
+
+/* Zaključana čestitka: otvorena (cijeli obrazac) ili plaćena (ime na kuverti). */
+.u-obrazac[inert] {
+  opacity: 0.55;
+}
+.u-polje input[readonly] {
+  background: #f3ede2;
+  color: var(--p-muted);
+}
