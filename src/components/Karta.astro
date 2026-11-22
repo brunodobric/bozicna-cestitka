@@ -12,8 +12,9 @@ interface Props {
   od: string;
   slika: string | null; // javni URL slike ili null
   gumbi?: boolean; // Spremi kao sliku / Otvori ponovno
+  primjer?: boolean; // pregled dizajna: umjesto spremanja slike, povratak na naslovnu
 }
-const { tema, naslov, poruka, od, slika, gumbi = true } = Astro.props;
+const { tema, naslov, poruka, od, slika, gumbi = true, primjer = false } = Astro.props;
 const info = temaInfo(tema);
 const podaci: Podaci = { tema: info.key, karta: info.karta, naslov, poruka, od, slika };
 const alt = [naslov, poruka, od].filter(Boolean).join('. ');
@@ -24,7 +25,19 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
     <img id="karta-slika" alt={alt} width="1080" height="1350" />
   </div>
   {
-    gumbi && (
+    primjer && (
+      <div class="gumbi">
+        <a class="gumb" href="/">
+          Natrag na naslovnu
+        </a>
+        <button type="button" class="gumb gumb--sporedni" id="ponovi">
+          Otvori ponovno
+        </button>
+      </div>
+    )
+  }
+  {
+    gumbi && !primjer && (
       <>
         <div class="gumbi">
           <button type="button" class="gumb" id="spremi" disabled>
