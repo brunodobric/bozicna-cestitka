@@ -48,7 +48,7 @@ npm run build
 - **Zaključavanje** (Bruno, 22. 11. 2026.): nakon plaćanja ime na kuverti (`za`) se ne mijenja, a kad primatelj prvi put otvori čestitku, ne mijenja se ništa. Čuva ga baza (okidač `cestitka_zakljucavanje`, migracija 006, i Storage pravila), a uređivač i `spremi.ts` to pokazuju.
 - **Spremi kao sliku:** na mobitelu (dodir bez miša) izbornik za dijeljenje, na računalu odmah preuzimanje (`jeMobitel()` u `scripts/cestitka.ts`). Uputa ispod gumba ne piše se nigdje (Bruno); isto mjesto pokazuje samo poruke o greški. Na dnu čestitke za primatelja je sitni link na naslovnicu "Pošalji nekome ovakvu čestitku." (Bruno).
 - `src/pages/uredi/[token].astro`: tajni link vraća čestitku i ostatak paketa na drugi uređaj (tek na gumb, zbog robota za pregled poveznica).
-- **Brisanje:** čestitka vrijedi 30 dana od plaćanja (`brisanje_nakon`, Bruno 22. 11. 2026.). Cron u `src/worker.ts` (`wrangler.jsonc` triggers, 3:15 UTC) zove `ocisti_istekle` i briše fotografije bez čestitke (`src/lib/ciscenje.ts`). Neplaćene čestitke nedirnute 30 dana također se brišu.
+- **Brisanje:** čestitka vrijedi tri mjeseca od plaćanja (`brisanje_nakon`; Bruno 22. 11. 2026., prije 30 dana, migracija 008). Cron u `src/worker.ts` (`wrangler.jsonc` triggers, 3:15 UTC) zove `ocisti_istekle` i briše fotografije bez čestitke (`src/lib/ciscenje.ts`). Neplaćene čestitke nedirnute tri mjeseca također se brišu.
 - `src/middleware.ts`: Supabase klijent po zahtjevu, CSP, `noindex` i `no-store` na `/c/`, `/napravi`, `/uredi`.
 
 ## Baza
@@ -61,6 +61,7 @@ npm run build
 - `004_melodija.sql` dodaje stupac `melodija` i ponovno stvara `javna_cestitka` (vraća i melodiju). Bruno je pokreće ručno; dok ne pokrene, čestitke kupaca rade bez glazbe.
 - `005_placanje_i_brisanje.sql`: rok 30 dana u `potvrdi_uplatu_cestitke` (novi parametar `p_komada`), tablica `paketi`, `iskoristi_paket`, `preuzmi_cestitku` s paketom, `ocisti_istekle` i Storage pravila za brisanje fotografija bez čestitke. Na kraju ispiše `placanje_secret` za Cloudflare. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
 - `007_mail_kupcu.sql`: stupac `uplate.mail_poslan`, `mail_za_uplatu` (zauzme slanje i vrati podatke za mail) i `mail_nije_poslan`. Mail šalje `src/lib/mail.ts` (Resend, `RESEND_API_KEY`, s `cestitka@kuverta.hr`) nakon potvrde uplate, i iz webhooka i s povratka; baza pazi da ode samo jednom. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
+- `008_rok_tri_mjeseca.sql`: rok tri mjeseca u `potvrdi_uplatu_cestitke`, `iskoristi_paket` i `ocisti_istekle`, a već plaćenim čestitkama rok tri mjeseca od prve uplate. Smije se pokrenuti više puta. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
 - `006_zakljucavanje.sql`: okidač `cestitka_zakljucavanje` i Storage pravila bez zamjene ili brisanja fotografije otvorene čestitke. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
 - `001_cestitke.sql` je provjerena na lokalnom Postgresu 16 sa zamjenskim auth/storage shemama (plaćanje, krivi ključ, RLS između kupaca, prvo otvaranje, prijenos tajnim linkom, istek).
 

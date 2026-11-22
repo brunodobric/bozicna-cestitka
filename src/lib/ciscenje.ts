@@ -1,5 +1,5 @@
-// Dnevno čišćenje (cron u src/worker.ts): briše čestitke kojima je prošao rok od 30 dana i neplaćene
-// čestitke koje nitko nije dirao 30 dana, pa njihove fotografije iz Storagea.
+// Dnevno čišćenje (cron u src/worker.ts): briše čestitke kojima je prošao rok od tri mjeseca i neplaćene
+// čestitke koje nitko nije dirao tri mjeseca, pa njihove fotografije iz Storagea.
 // Ide anonimnim ključem: brisanje redaka radi funkcija ocisti_istekle (s tajnom), a fotografiju bez čestitke
 // Storage dopušta obrisati bilo kome (migracija 005). service_role se ne koristi.
 import { createClient } from '@supabase/supabase-js';
