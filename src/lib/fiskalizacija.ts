@@ -1,6 +1,6 @@
 // Fiskalizacija kartičnih uplata preko servisa fisk-racun (repozitorij financijski-softver), isto kao u Kuverti
 // (src/lib/fiskalizacija.ts), uz izvor 'cestitka'. Varijable u Cloudflareu: FISK_URL i FISK_TOKEN (iste kao u Kuverti).
-// Uplate iz Stripe sandboxa fiskaliziraju se samo uz FISK_TESTNE_UPLATE=true (dok je fisk-racun u testnoj okolini).
+// Uplate iz Stripe sandboxa fiskaliziraju se samo uz FISK_TESTNE_UPLATE=true (samo dok je fisk-racun u testnoj okolini; u produkciji bi testna uplata dobila pravi račun).
 import { env } from 'cloudflare:workers';
 
 const read = (name: string) => {
