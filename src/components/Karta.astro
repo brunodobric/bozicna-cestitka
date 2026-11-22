@@ -13,8 +13,9 @@ interface Props {
   slika: string | null; // javni URL slike ili null
   gumbi?: boolean; // Spremi kao sliku / Otvori ponovno
   primjer?: boolean; // pregled dizajna: umjesto spremanja slike, povratak na naslovnu
+  natrag?: { href: string; tekst: string }; // uz primjer: kamo vodi prvi gumb (zadano naslovna)
 }
-const { tema, naslov, poruka, od, slika, gumbi = true, primjer = false } = Astro.props;
+const { tema, naslov, poruka, od, slika, gumbi = true, primjer = false, natrag = { href: '/', tekst: 'Natrag na naslovnu' } } = Astro.props;
 const info = temaInfo(tema);
 const podaci: Podaci = { tema: info.key, karta: info.karta, naslov, poruka, od, slika };
 const alt = [naslov, poruka, od].filter(Boolean).join('. ');
@@ -41,8 +42,8 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
   {
     primjer && (
       <div class="gumbi">
-        <a class="gumb" href="/">
-          Natrag na naslovnu
+        <a class="gumb" href={natrag.href}>
+          {natrag.tekst}
         </a>
         <button type="button" class="gumb gumb--sporedni" id="ponovi">
           Otvori ponovno

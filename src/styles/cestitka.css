@@ -535,3 +535,18 @@ html.env .glazba {
 .cest:has(.karta__list) {
   overflow-x: clip;
 }
+
+/* pregled za kupca (napravi/pregled): kratka napomena na vrhu, iznad kuverte i čestitke */
+.pregled-napomena {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  margin: 0;
+  padding: 0.5rem 64px; /* desno je gumb za glazbu */
+  background: rgba(0, 0, 0, 0.35);
+  color: #faf6f0;
+  font: 500 0.8125rem/1.4 var(--font-body);
+  text-align: center;
+}

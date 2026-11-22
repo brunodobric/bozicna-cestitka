@@ -41,6 +41,9 @@ npm run build
 - `public/primjeri/<tema>.jpg`: sličice za početnu. Nakon promjene dizajna treba ih ponovno snimiti (snimka elementa `#karta` na `/primjer/<tema>`).
 - U razvoju `/primjer/<tema>?proba=dugo` i `?proba=foto` pokazuju dugu poruku i čestitku s fotografijom (zamjenska slika `public/primjeri/proba-fotografija.jpg`).
 - `src/lib/melodije.ts` + `src/components/Glazba.astro` + `public/glazba/<ključ>.mp3`: **devet melodija** (ključevi su u bazi, ne mijenjati). Melodija krene na dodir kuverte, gumb u kutu je gasi. Licence i način rezanja isječaka su u `docs/GLAZBA.md`. Primjeri imaju svaki svoju melodiju, `?melodija=<ključ>` ili `?melodija=bez` je mijenja. Uređivač mora ponuditi odabir melodije (ili bez glazbe).
+- **Uređivač** `src/pages/napravi/index.astro` + `src/scripts/uredivac.ts` + `src/styles/uredivac.css`: dizajn, tekst (granica poruke po dizajnu), melodija s gumbom "poslušaj", jedna fotografija (smanjuje se u pregledniku na 1600 px JPEG). Pregled uživo crta isti `scripts/cestitka.ts`. Pravila polja su u `src/lib/uredivac.ts` (isti `provjeri()` koristi server).
+- `src/pages/napravi/spremi.ts`: POST iz uređivača. Prvo spremanje tiho prijavi kupca anonimno (`signInAnonymously`, kolačić httpOnly), pa insert ili update čestitke (RLS), upload fotografije u `cestitke-slike` (`src/lib/slike.ts`, tip po bajtovima), stara fotografija se briše. `/napravi?id=<uuid>` ponovno otvara čestitku na istom uređaju.
+- `src/pages/napravi/pregled/[id].astro`: kupčev pregled s kuvertom i glazbom prije plaćanja (samo vlasnik, kuverta svaki put).
 - `src/middleware.ts`: Supabase klijent po zahtjevu, CSP, `noindex` i `no-store` na `/c/`, `/napravi`, `/uredi`.
 
 ## Baza
@@ -71,5 +74,7 @@ Gotovo (22. 11. 2026.): božićna početna, devet dizajna čestitki, čestitka k
 
 Gotovo (22. 11. 2026.): glazba u čestitkama (devet melodija, javno dobro).
 Gotovo (22. 11. 2026.): fotografija kupca kao druga kartica iza čestitke. Uređivač (korak 5) treba ponuditi upload jedne fotografije (smanjivanje na 1600 px JPEG kao u Kuverti); kad se čestitka briše, treba obrisati i fotografiju iz bucketa.
+
+Gotovo (22. 11. 2026.): uređivač (korak 5): `/napravi`, spremanje s anonimnom prijavom, fotografija, pregled s kuvertom. Lokalno provjeren s lažnim Supabaseom; na pravom još nije isproban. **Treba migracije 002, 003 i 004** (insert šalje stupac `melodija`).
 
 **Otvoreno / čeka Brunu:** migracije `002_devet_dizajna.sql`, `003_duljina_poruke.sql` i `004_melodija.sql`, proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, `placanje_secret` (korak 7), odluke iz odjeljka 9 (cijena, trajanje čestitke, ime i domena, obavijest kupcu), proba na pravom iPhoneu i Androidu.

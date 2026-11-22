@@ -1,0 +1,157 @@
+---
+// Uređivač čestitke (korak 5 plana). Kupac bez registracije odabere dizajn, napiše tekst, odabere melodiju
+// i po želji doda jednu fotografiju. Pregled se crta uživo istim kodom kao čestitka primatelja
+// (scripts/cestitka.ts). Prvo spremanje kupca tiho prijavi anonimno (napravi/spremi.ts).
+// /napravi?id=<uuid> otvara čestitku koju je kupac već spremio na ovom uređaju.
+import Base from '../../layouts/Base.astro';
+import ThemeFonts from '../../components/ThemeFonts.astro';
+import { TEME, tema as temaInfo } from '../../lib/teme';
+import { MELODIJE, datotekaMelodije } from '../../lib/melodije';
+import { NAJVISE, NASLOVI, PRAZNO, type Unos } from '../../lib/uredivac';
+import { javniUrlSlike } from '../../lib/cestitka';
+import type { FontFamily } from '../../lib/fontovi';
+import '../../styles/uredivac.css';
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const trazeniId = Astro.url.searchParams.get('id') ?? '';
+let id = '';
+let unos: Unos = { ...PRAZNO };
+let slikaUrl: string | null = null;
+let izgubljena = false;
+
+if (UUID.test(trazeniId)) {
+  const { data } = Astro.locals.user
+    ? await Astro.locals.supabase.from('cestitke').select('*').eq('id', trazeniId).maybeSingle()
+    : { data: null };
+  if (data) {
+    id = data.id;
+    unos = {
+      tema: temaInfo(data.tema).key,
+      za: data.za ?? '',
+      naslov: data.naslov ?? PRAZNO.naslov,
+      poruka: data.poruka ?? '',
+      od: data.od ?? '',
+      melodija: data.melodija ?? null,
+    };
+    slikaUrl = javniUrlSlike(Astro.locals.supabaseUrl, data.slika);
+  } else {
+    izgubljena = true;
+  }
+} else {
+  const t = Astro.url.searchParams.get('tema');
+  if (TEME.some((x) => x.key === t)) unos.tema = temaInfo(t).key;
+}
+const info = temaInfo(unos.tema);
+const fontovi = [...new Set(TEME.flatMap((t) => t.fonts))] as FontFamily[];
+// Podaci za skriptu: opis svake čestitke (okvir, fontovi, boje) i granica duljine poruke.
+const teme = Object.fromEntries(TEME.map((t) => [t.key, { karta: t.karta, najvise: t.najvisePoruka, naziv: t.naziv }]));
+const pocetak = { id, unos, slikaUrl };
+---
+
+<Base title="Napravi čestitku" noindex>
+  <ThemeFonts families={fontovi} />
+  <div class="u">
+    <header class="u-uvod">
+      <h1>Napravi čestitku</h1>
+      <p class="p-muted">Odaberite dizajn, napišite poruku i odaberite glazbu. Pregled čestitke se mijenja dok pišete.</p>
+      {izgubljena && <p class="u-obavijest">Ta čestitka nije spremljena na ovom uređaju. Možete napraviti novu.</p>}
+    </header>
+
+    <form class="u-obrazac" id="obrazac" novalidate>
+      <input type="hidden" name="id" value={id} />
+
+      <fieldset class="u-korak">
+        <legend><span>1</span> Dizajn</legend>
+        <div class="u-dizajni">
+          {
+            TEME.map((t) => (
+              <label class="u-dizajn">
+                <input type="radio" name="tema" value={t.key} checked={t.key === unos.tema} />
+                <img src={`/primjeri/${t.key}.jpg`} alt="" width="216" height="270" loading="lazy" />
+                <span>{t.naziv}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="u-korak">
+        <legend><span>2</span> Tekst</legend>
+        <label class="u-polje">
+          <span>Na kuverti piše</span>
+          <input name="za" value={unos.za} maxlength={NAJVISE.za} placeholder="npr. Za baku i djeda" autocomplete="off" />
+        </label>
+        <label class="u-polje">
+          <span>Naslov</span>
+          <input name="naslov" value={unos.naslov} maxlength={NAJVISE.naslov} list="naslovi" autocomplete="off" />
+          <datalist id="naslovi">{NASLOVI.map((n) => <option value={n} />)}</datalist>
+        </label>
+        <label class="u-polje">
+          <span>Poruka</span>
+          <textarea name="poruka" rows="6" maxlength={info.najvisePoruka} placeholder="Draga Ana, …">{unos.poruka}</textarea>
+          <small class="u-brojac" id="brojac" aria-live="polite"></small>
+        </label>
+        <label class="u-polje">
+          <span>Potpis</span>
+          <input name="od" value={unos.od} maxlength={NAJVISE.od} placeholder="npr. Tvoji Luka i Petra" autocomplete="off" />
+        </label>
+      </fieldset>
+
+      <fieldset class="u-korak">
+        <legend><span>3</span> Glazba</legend>
+        <p class="p-small p-muted u-napomena">Svira kad primatelj otvori kuvertu. Primatelj je može ugasiti.</p>
+        <div class="u-melodije">
+          <label class="u-melodija">
+            <input type="radio" name="melodija" value="bez" checked={unos.melodija === null} />
+            <span class="u-melodija__tekst"><strong>Bez glazbe</strong></span>
+          </label>
+          {
+            MELODIJE.map((m) => (
+              <label class="u-melodija">
+                <input type="radio" name="melodija" value={m.key} checked={unos.melodija === m.key} />
+                <span class="u-melodija__tekst">
+                  <strong>{m.naziv}</strong>
+                  <small>{m.opis}</small>
+                </span>
+                <button type="button" class="u-poslusaj" data-src={datotekaMelodije(m.key)} aria-label={`Poslušaj: ${m.naziv}`}>
+                  ▶
+                </button>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="u-korak">
+        <legend><span>4</span> Fotografija <em>(neobavezno)</em></legend>
+        <p class="p-small p-muted u-napomena">Fotografija dolazi na drugu karticu, iza čestitke. Primatelj je vidi dodirom.</p>
+        <div class="u-foto" id="foto">
+          <img id="foto-mala" alt="Odabrana fotografija" hidden />
+          <label class="p-btn p-btn--ghost u-foto__odaberi">
+            <input type="file" name="fotografija-izbor" id="foto-izbor" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" />
+            <span id="foto-natpis">Dodaj fotografiju</span>
+          </label>
+          <button type="button" class="u-foto__ukloni" id="foto-ukloni" hidden>Ukloni</button>
+        </div>
+        <p class="p-small u-greska" id="foto-greska" hidden></p>
+      </fieldset>
+    </form>
+
+    <aside class="u-pregled" aria-label="Pregled čestitke">
+      <div class="u-pregled__karte" id="pregled">
+        <img id="pregled-cestitka" alt="Pregled čestitke" width="1080" height="1350" />
+        <img id="pregled-foto" alt="Pregled kartice s fotografijom" width="1080" height="1350" hidden />
+      </div>
+      <p class="u-greska" id="greska" role="alert" hidden></p>
+      <div class="u-akcije">
+        <button type="submit" form="obrazac" class="p-btn" id="spremi">Spremi i pogledaj u kuverti</button>
+        <p class="p-small p-muted" id="stanje" aria-live="polite">Plaćanje i slanje linka dolaze nakon spremanja.</p>
+      </div>
+    </aside>
+  </div>
+  <script type="application/json" id="uredivac-podaci" set:html={JSON.stringify({ teme, pocetak }).replace(/</g, '\\u003c')} />
+</Base>
+
+<script>
+  import '../../scripts/uredivac';
+</script>
