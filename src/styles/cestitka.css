@@ -278,43 +278,112 @@ body.inv {
   width: 100%;
   height: 100%;
 }
-/* Čestitka s fotografijom: dodir (ili gumb) je okrene na poleđinu. */
-.karta:has(.karta__okret) {
+/* Čestitka s fotografijom: dvije kartice, ukošene jedna iza druge. Kartica iza viri gore desno;
+   dodir na nju izvuče je udesno i stavi ispred, a prednja ode iza. */
+.karta:has(.karta__list) {
+  --t-naprijed: translate(-9%, 1%) rotate(-3deg);
+  --t-iza: translate(17%, -4%) rotate(4deg);
+  width: min(72%, 360px, calc((100svh - 15rem) * 0.72));
   background: none;
   box-shadow: none;
-  perspective: 1600px;
   overflow: visible;
-}
-.karta__okret {
-  all: unset;
-  display: block;
   position: relative;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  transform-style: preserve-3d;
-  transition: transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1);
+  margin-top: 1.5rem;
 }
-.karta__okret:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 4px;
-}
-.karta--okrenuta .karta__okret {
-  transform: rotateY(180deg);
-}
-.karta__okret img {
+.karta__list {
+  all: unset;
   position: absolute;
   inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+}
+.karta__list img {
   background: var(--surface);
   border-radius: 2px;
   box-shadow:
     0 2px 3px rgba(0, 0, 0, 0.3),
-    0 18px 40px rgba(0, 0, 0, 0.35);
+    0 18px 40px rgba(0, 0, 0, 0.4);
 }
-.karta__poledina {
-  transform: rotateY(180deg);
+.karta__list:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.karta__list.naprijed {
+  z-index: 3;
+  transform: var(--t-naprijed);
+  cursor: default;
+}
+.karta__list.iza {
+  z-index: 1;
+  transform: var(--t-iza);
+}
+.karta__list.iza img {
+  filter: brightness(0.92);
+}
+@media (hover: hover) {
+  .karta__list.iza:hover {
+    transform: translate(20%, -5%) rotate(5deg);
+  }
+}
+/* kad čestitka izađe iz kuverte, druga kartica izviri ispod nje */
+html:not(.env) .karta__list.iza:not(.odlazi) {
+  animation: izviri 0.7s 0.15s cubic-bezier(0.3, 0.7, 0.3, 1) backwards;
+}
+.karta__list.dolazi {
+  animation: dolazi 0.75s cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+html:not(.env) .karta__list.odlazi {
+  animation: odlazi 0.75s cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+@keyframes izviri {
+  from {
+    transform: var(--t-naprijed);
+  }
+}
+@keyframes dolazi {
+  0% {
+    z-index: 1;
+    transform: var(--t-iza);
+  }
+  45% {
+    z-index: 1;
+    transform: translate(72%, -2%) rotate(9deg);
+  }
+  55% {
+    z-index: 3;
+    transform: translate(70%, -2%) rotate(8deg);
+  }
+  100% {
+    z-index: 3;
+    transform: var(--t-naprijed);
+  }
+}
+@keyframes odlazi {
+  0% {
+    z-index: 3;
+    transform: var(--t-naprijed);
+  }
+  45% {
+    z-index: 3;
+    transform: translate(-20%, 3%) rotate(-7deg);
+  }
+  55% {
+    z-index: 1;
+    transform: translate(-19%, 3%) rotate(-6deg);
+  }
+  100% {
+    z-index: 1;
+    transform: var(--t-iza);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .karta__list,
+  html:not(.env) .karta__list.iza:not(.odlazi),
+  .karta__list.dolazi,
+  html:not(.env) .karta__list.odlazi {
+    animation: none;
+    transition: none;
+  }
 }
 .okreni {
   all: unset;
@@ -448,4 +517,8 @@ html.env .glazba {
 }
 .glazba.is-svira .glazba__kriz {
   display: none;
+}
+/* kartica koja izlazi udesno ne smije stvoriti vodoravni scroll */
+.cest:has(.karta__list) {
+  overflow-x: clip;
 }

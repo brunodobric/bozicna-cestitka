@@ -24,16 +24,20 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
   <div class="karta" id="karta">
     {
       slika ? (
-        <button type="button" class="karta__okret" id="okreni-kartu" aria-label="Okreni čestitku">
-          <img id="karta-slika" class="karta__lice" alt={alt} width="1080" height="1350" />
-          <img id="karta-poledina" class="karta__poledina" alt="Fotografija na poleđini čestitke" width="1080" height="1350" />
-        </button>
+        <>
+          <button type="button" class="karta__list naprijed" data-list="cestitka" aria-label="Čestitka">
+            <img id="karta-slika" alt={alt} width="1080" height="1350" />
+          </button>
+          <button type="button" class="karta__list iza" data-list="foto" aria-label="Fotografija">
+            <img id="karta-poledina" alt="Fotografija uz čestitku" width="1080" height="1350" />
+          </button>
+        </>
       ) : (
         <img id="karta-slika" alt={alt} width="1080" height="1350" />
       )
     }
   </div>
-  {slika && <button type="button" class="okreni" id="okreni">Okreni čestitku</button>}
+  {slika && <button type="button" class="okreni" id="okreni">Pogledaj fotografiju</button>}
   {
     primjer && (
       <div class="gumbi">
@@ -109,9 +113,21 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
   });
 
   const karta = document.getElementById('karta');
-  const okreni = () => karta?.classList.toggle('karta--okrenuta');
-  document.getElementById('okreni-kartu')?.addEventListener('click', okreni);
-  document.getElementById('okreni')?.addEventListener('click', okreni);
+  // Čestitka s fotografijom: dvije kartice jedna iza druge. Dodir na karticu iza (ili gumb) je izvuče naprijed.
+  const listovi = [...document.querySelectorAll<HTMLButtonElement>('.karta__list')];
+  const okreniGumb = document.getElementById('okreni');
+  const zamijeni = () => {
+    for (const l of listovi) {
+      const naprijed = l.classList.contains('iza');
+      l.classList.remove('naprijed', 'iza', 'dolazi', 'odlazi');
+      void l.offsetWidth; // ponovno pokreni animaciju
+      l.classList.add(naprijed ? 'naprijed' : 'iza', naprijed ? 'dolazi' : 'odlazi');
+    }
+    const foto = listovi.find((l) => l.dataset.list === 'foto')?.classList.contains('naprijed');
+    if (okreniGumb) okreniGumb.textContent = foto ? 'Pogledaj čestitku' : 'Pogledaj fotografiju';
+  };
+  for (const l of listovi) l.addEventListener('click', () => l.classList.contains('iza') && zamijeni());
+  okreniGumb?.addEventListener('click', zamijeni);
 
   gumb?.addEventListener('click', async () => {
     if (!blob) return;
