@@ -34,7 +34,9 @@ body.pocetna .p-footer {
 /* ---------- snijeg koji pada ---------- */
 body.pocetna .snijeg {
   position: fixed;
-  inset: 0;
+  /* 12 px od ruba: Safari na iOS 26 boju gornje i donje trake uzima s fiksnog elementa uz rub,
+     a prozirni sloj snijega bi mu dao bijelu boju (vidi components/Rubovi.astro) */
+  inset: 12px 0;
   pointer-events: none;
   z-index: 5;
   overflow: hidden;
