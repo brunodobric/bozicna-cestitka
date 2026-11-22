@@ -22,8 +22,22 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
 
 <main class="cest">
   <div class="karta" id="karta">
-    <img id="karta-slika" alt={alt} width="1080" height="1350" />
+    {
+      slika ? (
+        <>
+          <button type="button" class="karta__list naprijed" data-list="cestitka" aria-label="Čestitka">
+            <img id="karta-slika" alt={alt} width="1080" height="1350" />
+          </button>
+          <button type="button" class="karta__list iza" data-list="foto" aria-label="Fotografija">
+            <img id="karta-fotografija" alt="Fotografija uz čestitku" width="1080" height="1350" />
+          </button>
+        </>
+      ) : (
+        <img id="karta-slika" alt={alt} width="1080" height="1350" />
+      )
+    }
   </div>
+  {slika && <button type="button" class="okreni" id="okreni">Pogledaj fotografiju</button>}
   {
     primjer && (
       <div class="gumbi">
@@ -57,19 +71,28 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
 <script type="application/json" id="cestitka-podaci" set:html={JSON.stringify(podaci).replace(/</g, '\\u003c')} />
 
 <script>
-  import { nacrtaj, spremi, uBlob, type Podaci } from '../scripts/cestitka';
+  import { nacrtaj, nacrtajFotografiju, natpisFotografije, spremi, uBlob, type Podaci } from '../scripts/cestitka';
 
   const podaci = JSON.parse(document.getElementById('cestitka-podaci')?.textContent ?? 'null') as Podaci | null;
   const slika = document.getElementById('karta-slika') as HTMLImageElement | null;
   const gumb = document.getElementById('spremi') as HTMLButtonElement | null;
   const napomena = document.getElementById('napomena');
   let blob: Blob | null = null;
+  let fotoBlob: Blob | null = null;
 
   // Slika se pripremi odmah (dok je kuverta još zatvorena) i postavi i na karticu u kuverti.
   (async () => {
     if (!podaci || !slika) return;
     try {
       blob = await uBlob(await nacrtaj(podaci));
+      // Fotografija je na drugoj kartici. Ako se ne učita, ostaje samo čestitka.
+      if (podaci.slika) {
+        const druga = await nacrtajFotografiju({ ...podaci, natpis: natpisFotografije() });
+        fotoBlob = druga ? await uBlob(druga) : null;
+        const img = document.getElementById('karta-fotografija') as HTMLImageElement | null;
+        if (fotoBlob && img) img.src = URL.createObjectURL(fotoBlob);
+        else document.querySelectorAll('.karta__list.iza, #okreni').forEach((e) => e.remove());
+      }
       if (!blob) throw new Error('canvas');
       const url = URL.createObjectURL(blob);
       slika.src = url;
@@ -90,11 +113,32 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
     location.reload();
   });
 
+  const karta = document.getElementById('karta');
+  // Čestitka s fotografijom: dvije kartice jedna iza druge. Dodir na karticu iza (ili gumb) je izvuče naprijed.
+  const listovi = [...document.querySelectorAll<HTMLButtonElement>('.karta__list')];
+  const okreniGumb = document.getElementById('okreni');
+  let zamjena = 0;
+  const zamijeni = () => {
+    clearTimeout(zamjena);
+    for (const l of listovi) {
+      const naprijed = l.classList.contains('iza');
+      l.classList.remove('naprijed', 'iza', 'dolazi', 'odlazi');
+      void l.offsetWidth; // ponovno pokreni animaciju
+      l.classList.add(naprijed ? 'naprijed' : 'iza', naprijed ? 'dolazi' : 'odlazi');
+      l.style.zIndex = naprijed ? '1' : '3'; // do polovice animacije ostaje kako je bilo
+    }
+    zamjena = window.setTimeout(() => listovi.forEach((l) => (l.style.zIndex = '')), 450);
+    const foto = listovi.find((l) => l.dataset.list === 'foto')?.classList.contains('naprijed');
+    if (okreniGumb) okreniGumb.textContent = foto ? 'Pogledaj čestitku' : 'Pogledaj fotografiju';
+  };
+  for (const l of listovi) l.addEventListener('click', () => l.classList.contains('iza') && zamijeni());
+  okreniGumb?.addEventListener('click', zamijeni);
+
   gumb?.addEventListener('click', async () => {
     if (!blob) return;
     gumb.disabled = true;
     try {
-      await spremi(blob);
+      await spremi(blob, fotoBlob);
     } catch (e) {
       console.error('spremi', e);
       if (napomena) napomena.textContent = 'Slika se nije spremila. Pokušajte ponovno ili napravite snimku zaslona.';
