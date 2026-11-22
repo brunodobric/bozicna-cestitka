@@ -92,4 +92,6 @@ Gotovo (22. 11. 2026.): migracija 005 pokrenuta, Stripe ključevi i webhook upis
 
 Gotovo (22. 11. 2026.): migracija 006 pokrenuta, zaključavanje spojeno.
 
-**Otvoreno / čeka Brunu:** spajanje `bozicna.kuverta.hr` na Worker, `SITE_URL`, adresa webhooka u Stripeu, proba plaćanja testnom karticom, isključiti suvišne načine plaćanja u Stripeu (MB WAY, Swish...), migracija 007 i `RESEND_API_KEY` za mail kupcu, proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.
+Gotovo (22. 11. 2026.): domena bozicna.kuverta.hr spojena (`SITE_URL` i webhook upisani), mail kupcu (migracija 007 i `RESEND_API_KEY` upisani), božićna ikonica.
+
+**Otvoreno / čeka Brunu:** proba plaćanja testnom karticom, isključiti suvišne načine plaćanja u Stripeu (MB WAY, Swish...), proba maila kupcu (stiže li s cestitka@kuverta.hr), proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.
