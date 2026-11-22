@@ -5,6 +5,7 @@
 import Base from '../../../layouts/Base.astro';
 import { potvrdiPovratak } from '../../../lib/placanje';
 import { siteOrigin } from '../../../lib/seo';
+import { fiskalizacijaPostavljena } from '../../../lib/fiskalizacija';
 import '../../../styles/uredivac.css';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -28,6 +29,10 @@ if (!c) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
 
 const { data: paket } = await supabase.from('paketi').select('preostalo').maybeSingle();
 const izPaketa = paket?.preostalo ?? 0;
+// Račun (PDF) postoji samo za uplatu karticom ove čestitke (ne za čestitku iz paketa) i kad je fiskalizacija postavljena.
+const { data: uplata } = fiskalizacijaPostavljena()
+  ? await supabase.from('uplate').select('id').eq('cestitka_id', id).like('stripe_session_id', 'cs_%').limit(1).maybeSingle()
+  : { data: null };
 const link = `${Astro.url.origin}/c/${c.token}`;
 const tajniLink = `${Astro.url.origin}/uredi/${c.uredi_token}`;
 const datum = (d: string | null) => {
@@ -81,6 +86,11 @@ const vrijediDo = datum(c.brisanje_nakon);
               Uredi čestitku
             </a>
           </div>
+          {uplata && (
+            <p class="p-muted g-mala">
+              <a href={`/napravi/racun/${c.id}`} target="_blank" rel="noopener">Preuzmite račun (PDF)</a>
+            </p>
+          )}
           {izPaketa > 0 && (
             <div class="g-paket">
               <p>
