@@ -325,9 +325,18 @@ body.inv {
     transform: translate(20%, -5%) rotate(5deg);
   }
 }
-/* kad čestitka izađe iz kuverte, druga kartica izviri ispod nje */
+/* Kuverta ostavi čestitku točno na mjestu okvira #karta, ravnu. Kad kuverta nestane, prednja kartica
+   se samo pomakne i nakosi, a druga izađe ispod nje (do tada stoji skrivena točno iza prve). */
+html:not(.env) .karta__list.naprijed:not(.dolazi) {
+  animation: smjesti 0.8s 0.5s cubic-bezier(0.3, 0.7, 0.3, 1) backwards;
+}
 html:not(.env) .karta__list.iza:not(.odlazi) {
-  animation: izviri 0.7s 0.15s cubic-bezier(0.3, 0.7, 0.3, 1) backwards;
+  animation: izviri 0.9s 0.6s cubic-bezier(0.3, 0.7, 0.3, 1) backwards;
+}
+@keyframes smjesti {
+  from {
+    transform: none;
+  }
 }
 .karta__list.dolazi {
   animation: dolazi 0.75s cubic-bezier(0.45, 0.05, 0.25, 1);
@@ -337,7 +346,7 @@ html:not(.env) .karta__list.odlazi {
 }
 @keyframes izviri {
   from {
-    transform: var(--t-naprijed);
+    transform: none;
   }
 }
 @keyframes dolazi {
@@ -378,6 +387,7 @@ html:not(.env) .karta__list.odlazi {
 }
 @media (prefers-reduced-motion: reduce) {
   .karta__list,
+  html:not(.env) .karta__list.naprijed:not(.dolazi),
   html:not(.env) .karta__list.iza:not(.odlazi),
   .karta__list.dolazi,
   html:not(.env) .karta__list.odlazi {
