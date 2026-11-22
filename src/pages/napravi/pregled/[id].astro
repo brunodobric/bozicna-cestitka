@@ -1,0 +1,24 @@
+---
+// Pregled čestitke za kupca prije plaćanja: ista kuverta, čestitka i glazba kakve će vidjeti primatelj.
+// Čita se kupčevom sesijom (RLS: samo vlasnik), pa ne radi na drugom uređaju. Kuverta se pokazuje svaki put.
+import CestitkaLayout from '../../../layouts/CestitkaLayout.astro';
+import Envelope from '../../../components/Envelope.astro';
+import Karta from '../../../components/Karta.astro';
+import Glazba from '../../../components/Glazba.astro';
+import { javniUrlSlike } from '../../../lib/cestitka';
+import { tema as temaInfo } from '../../../lib/teme';
+
+const id = Astro.params.id ?? '';
+const ok = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id);
+const { data: c } = ok && Astro.locals.user ? await Astro.locals.supabase.from('cestitke').select('*').eq('id', id).maybeSingle() : { data: null };
+if (!c) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
+const info = temaInfo(c.tema);
+const slika = javniUrlSlike(Astro.locals.supabaseUrl, c.slika);
+---
+
+<CestitkaLayout tema={info.key} envelope="" title="Pregled čestitke">
+  <Envelope storageKey="" za={c.za} pecat={info.pecat} deco={info.deco} />
+  <Karta tema={info.key} naslov={c.naslov} poruka={c.poruka} od={c.od} slika={slika} primjer natrag={{ href: `/napravi?id=${c.id}`, tekst: 'Natrag na uređivanje' }} />
+  <Glazba melodija={c.melodija ?? null} />
+  <p class="pregled-napomena">Ovako će čestitku vidjeti primatelj. Plaćanje i slanje linka dolaze u sljedećem koraku.</p>
+</CestitkaLayout>

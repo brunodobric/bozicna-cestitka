@@ -1,0 +1,316 @@
+/* Uređivač čestitke (/napravi). Mobitel: koraci jedan ispod drugoga, pregled na kraju s gumbom.
+   Računalo: obrazac lijevo, pregled desno (ostaje na mjestu dok se piše). */
+.u {
+  display: grid;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+}
+.u-uvod h1 {
+  margin-bottom: 0.25rem;
+}
+.u-uvod p {
+  margin: 0;
+}
+.u-obavijest {
+  margin-top: 0.75rem !important;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: #fbefd5;
+  color: var(--p-text);
+}
+@media (min-width: 900px) {
+  .u {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    grid-template-areas: 'uvod uvod' 'obrazac pregled';
+    column-gap: 2.5rem;
+    align-items: start;
+  }
+  .u-uvod {
+    grid-area: uvod;
+  }
+  .u-obrazac {
+    grid-area: obrazac;
+  }
+  .u-pregled {
+    grid-area: pregled;
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.u-obrazac {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.u-korak {
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--p-border);
+  border-radius: 8px;
+  background: var(--p-surface);
+  min-width: 0;
+}
+.u-korak legend {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.25rem;
+  font: 600 1.0625rem/1.2 var(--p-font-body);
+  color: var(--p-green);
+}
+.u-korak legend span {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--p-primary);
+  color: #fff;
+  font-size: 0.875rem;
+}
+.u-korak legend em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--p-muted);
+  font-size: 0.875rem;
+}
+.u-napomena {
+  margin: 0 0 0.75rem;
+}
+
+/* dizajni: 3 u redu na mobitelu */
+.u-dizajni {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+@media (min-width: 640px) {
+  .u-dizajni {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+.u-dizajn {
+  position: relative;
+  display: grid;
+  gap: 0.3rem;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+.u-dizajn input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.u-dizajn img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.u-dizajn input:checked + img {
+  border-color: var(--p-primary);
+  transform: translateY(-2px);
+}
+.u-dizajn input:checked ~ span {
+  font-weight: 600;
+  color: var(--p-primary);
+}
+.u-dizajn input:focus-visible + img {
+  outline: 2px solid var(--p-gold);
+  outline-offset: 2px;
+}
+
+/* polja */
+.u-polje {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+.u-polje:last-child {
+  margin-bottom: 0;
+}
+.u-polje > span {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+.u-polje input,
+.u-polje textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #cfc3ab;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--p-text);
+  font: 400 1rem/1.5 var(--p-font-body); /* 16px: iPhone ne zumira polje */
+}
+.u-polje textarea {
+  resize: vertical;
+  min-height: 9rem;
+}
+.u-polje input:focus,
+.u-polje textarea:focus {
+  outline: 2px solid var(--p-gold);
+  outline-offset: 1px;
+  border-color: var(--p-green);
+}
+.u-brojac {
+  justify-self: end;
+  font-size: 0.8125rem;
+  color: var(--p-muted);
+}
+.u-brojac.je-previse {
+  justify-self: stretch;
+  color: var(--p-primary);
+  font-weight: 600;
+}
+
+/* melodije */
+.u-melodije {
+  display: grid;
+  gap: 0.5rem;
+}
+.u-melodija {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 52px;
+  padding: 0.5rem 0.5rem 0.5rem 0.85rem;
+  border: 1px solid var(--p-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.u-melodija:has(input:checked) {
+  border-color: var(--p-primary);
+  background: #fbf3f1;
+}
+.u-melodija input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--p-primary);
+  flex: none;
+}
+.u-melodija__tekst {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+.u-melodija__tekst small {
+  color: var(--p-muted);
+  font-size: 0.8125rem;
+}
+.u-poslusaj {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--p-green);
+  background: #fff;
+  color: var(--p-green);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.u-poslusaj.je-svira {
+  background: var(--p-green);
+  color: #fff;
+}
+
+/* fotografija */
+.u-foto {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.u-foto img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.u-foto__odaberi {
+  position: relative;
+  overflow: hidden;
+}
+.u-foto__odaberi input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.u-foto__odaberi:has(input:focus-visible) {
+  outline: 2px solid var(--p-gold);
+  outline-offset: 3px;
+}
+.u-foto__ukloni {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--p-primary);
+  font: 600 0.9375rem/1 var(--p-font-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* pregled */
+.u-pregled {
+  display: grid;
+  gap: 1rem;
+}
+.u-pregled__karte {
+  position: relative;
+  padding: 1.25rem;
+  border-radius: 8px;
+  background: radial-gradient(ellipse at 50% 40%, #1b4332, #143627);
+}
+.u-pregled__karte img {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  margin: 0 auto;
+  aspect-ratio: 1080 / 1350;
+  border-radius: 3px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  background: #faf6f0;
+}
+.u-pregled__karte #pregled-foto {
+  margin-top: 1rem;
+}
+.u-greska {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: #fbe9e7;
+  color: var(--p-primary-dark, #8b0000);
+  font-weight: 600;
+}
+.u-greska[hidden] {
+  display: none;
+}
+.u-akcije {
+  display: grid;
+  gap: 0.5rem;
+}
+.u-akcije .p-btn {
+  width: 100%;
+}
+.u-akcije p {
+  margin: 0;
+  text-align: center;
+}
+.u-pregled__karte img[hidden],
+.u-foto img[hidden] {
+  display: none;
+}
