@@ -194,21 +194,25 @@ export function uBlob(c: HTMLCanvasElement): Promise<Blob | null> {
   return new Promise((res) => c.toBlob(res, 'image/png'));
 }
 
-export async function spremi(blob: Blob): Promise<void> {
-  const file = new File([blob], 'bozicna-cestitka.png', { type: 'image/png' });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+// Čestitka s fotografijom ima dvije slike (prednja strana i poleđina) i obje se spremaju odjednom.
+export async function spremi(blob: Blob, poledina: Blob | null = null): Promise<void> {
+  const files = [new File([blob], 'bozicna-cestitka.png', { type: 'image/png' })];
+  if (poledina) files.push(new File([poledina], 'bozicna-cestitka-fotografija.png', { type: 'image/png' }));
+  if (navigator.canShare && navigator.canShare({ files })) {
     try {
-      await navigator.share({ files: [file], title: 'Božićna čestitka' });
+      await navigator.share({ files, title: 'Božićna čestitka' });
       return;
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return;
     }
   }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = file.name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  for (const f of files) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(f);
+    a.download = f.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
 }

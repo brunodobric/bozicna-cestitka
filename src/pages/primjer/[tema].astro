@@ -20,7 +20,7 @@ else if (melodija(trazena)) p.melodija = trazena;
 if (import.meta.env.DEV) {
   const proba = Astro.url.searchParams.get('proba');
   if (proba === 'dugo') p.poruka = 'Draga naša obitelji, ove godine smo se rijetko viđali, ali smo često mislili na vas. '.repeat(7).slice(0, info.najvisePoruka);
-  if (proba === 'foto') p.slika = '/primjeri/zimska.jpg';
+  if (proba === 'foto') p.slika = '/primjeri/_proba-foto.jpg';
 }
 ---
 

@@ -278,6 +278,60 @@ body.inv {
   width: 100%;
   height: 100%;
 }
+/* Čestitka s fotografijom: dodir (ili gumb) je okrene na poleđinu. */
+.karta:has(.karta__okret) {
+  background: none;
+  box-shadow: none;
+  perspective: 1600px;
+  overflow: visible;
+}
+.karta__okret {
+  all: unset;
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+.karta__okret:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.karta--okrenuta .karta__okret {
+  transform: rotateY(180deg);
+}
+.karta__okret img {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: var(--surface);
+  border-radius: 2px;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.3),
+    0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.karta__poledina {
+  transform: rotateY(180deg);
+}
+.okreni {
+  all: unset;
+  cursor: pointer;
+  font: 500 0.9375rem/1.2 var(--font-body);
+  color: var(--na-pozadini);
+  padding: 0.5rem 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.okreni:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+html.env .okreni {
+  opacity: 0;
+}
 .karta img:not([src]) {
   visibility: hidden;
 }

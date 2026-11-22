@@ -22,8 +22,18 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
 
 <main class="cest">
   <div class="karta" id="karta">
-    <img id="karta-slika" alt={alt} width="1080" height="1350" />
+    {
+      slika ? (
+        <button type="button" class="karta__okret" id="okreni-kartu" aria-label="Okreni čestitku">
+          <img id="karta-slika" class="karta__lice" alt={alt} width="1080" height="1350" />
+          <img id="karta-poledina" class="karta__poledina" alt="Fotografija na poleđini čestitke" width="1080" height="1350" />
+        </button>
+      ) : (
+        <img id="karta-slika" alt={alt} width="1080" height="1350" />
+      )
+    }
   </div>
+  {slika && <button type="button" class="okreni" id="okreni">Okreni čestitku</button>}
   {
     primjer && (
       <div class="gumbi">
@@ -58,18 +68,26 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
 
 <script>
   import { nacrtaj, spremi, uBlob, type Podaci } from '../scripts/cestitka';
+  import { nacrtajPoledinu } from '../scripts/proba-foto';
 
   const podaci = JSON.parse(document.getElementById('cestitka-podaci')?.textContent ?? 'null') as Podaci | null;
   const slika = document.getElementById('karta-slika') as HTMLImageElement | null;
   const gumb = document.getElementById('spremi') as HTMLButtonElement | null;
   const napomena = document.getElementById('napomena');
   let blob: Blob | null = null;
+  let poledina: Blob | null = null;
 
   // Slika se pripremi odmah (dok je kuverta još zatvorena) i postavi i na karticu u kuverti.
   (async () => {
     if (!podaci || !slika) return;
     try {
-      blob = await uBlob(await nacrtaj(podaci));
+      // S fotografijom: prednja strana je ista kao bez nje, a fotografija ide na poleđinu.
+      blob = await uBlob(await nacrtaj({ ...podaci, slika: null }));
+      if (podaci.slika) {
+        poledina = await uBlob(await nacrtajPoledinu({ ...podaci, natpis: `Božić ${new Date().getFullYear()}.` }));
+        const zadnja = document.getElementById('karta-poledina') as HTMLImageElement | null;
+        if (poledina && zadnja) zadnja.src = URL.createObjectURL(poledina);
+      }
       if (!blob) throw new Error('canvas');
       const url = URL.createObjectURL(blob);
       slika.src = url;
@@ -90,11 +108,16 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
     location.reload();
   });
 
+  const karta = document.getElementById('karta');
+  const okreni = () => karta?.classList.toggle('karta--okrenuta');
+  document.getElementById('okreni-kartu')?.addEventListener('click', okreni);
+  document.getElementById('okreni')?.addEventListener('click', okreni);
+
   gumb?.addEventListener('click', async () => {
     if (!blob) return;
     gumb.disabled = true;
     try {
-      await spremi(blob);
+      await spremi(blob, poledina);
     } catch (e) {
       console.error('spremi', e);
       if (napomena) napomena.textContent = 'Slika se nije spremila. Pokušajte ponovno ili napravite snimku zaslona.';
