@@ -29,7 +29,7 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
             <img id="karta-slika" alt={alt} width="1080" height="1350" />
           </button>
           <button type="button" class="karta__list iza" data-list="foto" aria-label="Fotografija">
-            <img id="karta-poledina" alt="Fotografija uz čestitku" width="1080" height="1350" />
+            <img id="karta-fotografija" alt="Fotografija uz čestitku" width="1080" height="1350" />
           </button>
         </>
       ) : (
@@ -71,26 +71,27 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
 <script type="application/json" id="cestitka-podaci" set:html={JSON.stringify(podaci).replace(/</g, '\\u003c')} />
 
 <script>
-  import { nacrtaj, spremi, uBlob, type Podaci } from '../scripts/cestitka';
-  import { nacrtajPoledinu } from '../scripts/proba-foto';
+  import { nacrtaj, nacrtajFotografiju, natpisFotografije, spremi, uBlob, type Podaci } from '../scripts/cestitka';
 
   const podaci = JSON.parse(document.getElementById('cestitka-podaci')?.textContent ?? 'null') as Podaci | null;
   const slika = document.getElementById('karta-slika') as HTMLImageElement | null;
   const gumb = document.getElementById('spremi') as HTMLButtonElement | null;
   const napomena = document.getElementById('napomena');
   let blob: Blob | null = null;
-  let poledina: Blob | null = null;
+  let fotoBlob: Blob | null = null;
 
   // Slika se pripremi odmah (dok je kuverta još zatvorena) i postavi i na karticu u kuverti.
   (async () => {
     if (!podaci || !slika) return;
     try {
-      // S fotografijom: prednja strana je ista kao bez nje, a fotografija ide na poleđinu.
-      blob = await uBlob(await nacrtaj({ ...podaci, slika: null }));
+      blob = await uBlob(await nacrtaj(podaci));
+      // Fotografija je na drugoj kartici. Ako se ne učita, ostaje samo čestitka.
       if (podaci.slika) {
-        poledina = await uBlob(await nacrtajPoledinu({ ...podaci, natpis: `Božić ${new Date().getFullYear()}.` }));
-        const zadnja = document.getElementById('karta-poledina') as HTMLImageElement | null;
-        if (poledina && zadnja) zadnja.src = URL.createObjectURL(poledina);
+        const druga = await nacrtajFotografiju({ ...podaci, natpis: natpisFotografije() });
+        fotoBlob = druga ? await uBlob(druga) : null;
+        const img = document.getElementById('karta-fotografija') as HTMLImageElement | null;
+        if (fotoBlob && img) img.src = URL.createObjectURL(fotoBlob);
+        else document.querySelectorAll('.karta__list.iza, #okreni').forEach((e) => e.remove());
       }
       if (!blob) throw new Error('canvas');
       const url = URL.createObjectURL(blob);
@@ -137,7 +138,7 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
     if (!blob) return;
     gumb.disabled = true;
     try {
-      await spremi(blob, poledina);
+      await spremi(blob, fotoBlob);
     } catch (e) {
       console.error('spremi', e);
       if (napomena) napomena.textContent = 'Slika se nije spremila. Pokušajte ponovno ili napravite snimku zaslona.';

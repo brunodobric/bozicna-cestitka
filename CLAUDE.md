@@ -34,11 +34,12 @@ npm run build
 - `src/pages/primjer/[tema].astro`: primjer svake teme, radi bez baze.
 - `src/lib/teme.ts`: **devet dizajna** (`klasicna`, `zimska`, `moderna`, `imela`, `andeo`, `djed`, `sob`, `drvce`, `vijenac`; ključevi su u bazi, ne mijenjati). Svaki ima boje stranice i kuverte (CSS varijable, postavlja ih `CestitkaLayout`), ukras ispod pečata i opis čestitke: fontove, boje i okvir u koji se slaže tekst.
 - `src/lib/ilustracije.ts` + `src/pages/ilustracije/[tema].svg.ts`: ilustracije čestitki (SVG 1080 × 1350 nacrtan kodom, bez teksta).
-- `src/scripts/cestitka.ts`: **čestitka je jedna slika**. Crta se na canvas (ilustracija, po želji fotografija, pa naslov, poruka i potpis koji se smanjuju dok ne stanu u okvir). Ista slika ide na karticu u kuverti, na ekran i u "Spremi kao sliku". Promjena ilustracije traži provjeru okvira za tekst u `teme.ts`.
+- `src/scripts/cestitka.ts`: **čestitka je jedna slika**. Crta se na canvas (ilustracija, pa naslov, poruka i potpis koji se smanjuju dok ne stanu u okvir). Ista slika ide na karticu u kuverti, na ekran i u "Spremi kao sliku". Promjena ilustracije traži provjeru okvira za tekst u `teme.ts`.
+- **Fotografija kupca je druga kartica** (`nacrtajFotografiju`): ista ilustracija, fotografija s bijelim rubom na mjestu teksta i natpis "Božić <godina>." (kod vijenca okrugla, unutar vijenca). Tekst čestitke zato ostaje jednako velik s fotografijom i bez nje. Nakon kuverte čestitka se pomakne i nakosi, a kartica s fotografijom izviri iza nje; dodir na nju (ili "Pogledaj fotografiju") ih zamijeni. "Spremi kao sliku" sprema obje. Bruno je odabrao ovaj način 22. 11. 2026. (prednja fotografija iznad teksta odbačena jer je tekst postajao presitan).
 - `src/components/Envelope.astro`, `EnvelopeHead.astro`: kuverta iz Kuverte; CSS u `src/styles/kuverta.css` (doslovno iz Kuvertinog `invitation.css`), dopune u `src/styles/cestitka.css` (tekstura, pečat, grančica, čestitka koja izlazi iz kuverte i dolazi na svoje mjesto).
 - `src/components/Karta.astro`: gotova čestitka (`<img>`) i gumbi.
 - `public/primjeri/<tema>.jpg`: sličice za početnu. Nakon promjene dizajna treba ih ponovno snimiti (snimka elementa `#karta` na `/primjer/<tema>`).
-- U razvoju `/primjer/<tema>?proba=dugo` i `?proba=foto` pokazuju dugu poruku i čestitku s fotografijom.
+- U razvoju `/primjer/<tema>?proba=dugo` i `?proba=foto` pokazuju dugu poruku i čestitku s fotografijom (zamjenska slika `public/primjeri/proba-fotografija.jpg`).
 - `src/lib/melodije.ts` + `src/components/Glazba.astro` + `public/glazba/<ključ>.mp3`: **devet melodija** (ključevi su u bazi, ne mijenjati). Melodija krene na dodir kuverte, gumb u kutu je gasi. Licence i način rezanja isječaka su u `docs/GLAZBA.md`. Primjeri imaju svaki svoju melodiju, `?melodija=<ključ>` ili `?melodija=bez` je mijenja. Uređivač mora ponuditi odabir melodije (ili bez glazbe).
 - `src/middleware.ts`: Supabase klijent po zahtjevu, CSP, `noindex` i `no-store` na `/c/`, `/napravi`, `/uredi`.
 
@@ -69,5 +70,6 @@ Gotovo (21. 11. 2026.): koraci 1 do 4 plana (kostur, tri teme, javna čestitka, 
 Gotovo (22. 11. 2026.): božićna početna, devet dizajna čestitki, čestitka kao jedna slika u kuverti, na ekranu i u galeriji.
 
 Gotovo (22. 11. 2026.): glazba u čestitkama (devet melodija, javno dobro).
+Gotovo (22. 11. 2026.): fotografija kupca kao druga kartica iza čestitke. Uređivač (korak 5) treba ponuditi upload jedne fotografije (smanjivanje na 1600 px JPEG kao u Kuverti); kad se čestitka briše, treba obrisati i fotografiju iz bucketa.
 
 **Otvoreno / čeka Brunu:** migracije `002_devet_dizajna.sql`, `003_duljina_poruke.sql` i `004_melodija.sql`, proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, `placanje_secret` (korak 7), odluke iz odjeljka 9 (cijena, trajanje čestitke, ime i domena, obavijest kupcu), proba na pravom iPhoneu i Androidu.
