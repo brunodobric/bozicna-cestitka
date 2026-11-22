@@ -3,7 +3,7 @@ import { obradiDogadaj, provjeriPotpis } from '../../lib/placanje';
 import { siteOrigin } from '../../lib/seo';
 
 // Stripe javlja dovršene naplate ovdje (Stripe → Developers → Webhooks, adresa /stripe/webhook).
-// Događaji: checkout.session.completed i checkout.session.async_payment_succeeded.
+// Događaji: checkout.session.completed, checkout.session.async_payment_succeeded i charge.refunded (storno računa).
 export const POST: APIRoute = async ({ request, locals, url }) => {
   const payload = await request.text();
   if (!(await provjeriPotpis(payload, request.headers.get('stripe-signature') ?? ''))) {
