@@ -173,6 +173,23 @@ function pokaziGresku(tekst: string | null) {
   greska.hidden = !tekst;
 }
 
+// CAPTCHA (Turnstile) prije prvog spremanja: widget postoji samo dok kupac nije prijavljen.
+// Token stiže sekundu ili dvije nakon učitavanja; ako ga još nema, pričekamo.
+async function cekajTurnstile(): Promise<void> {
+  if (!forma.querySelector('.cf-turnstile')) return;
+  const token = () => (forma.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value ?? '';
+  const pocetak = Date.now();
+  while (!token()) {
+    stanje.textContent =
+      Date.now() - pocetak > 10000
+        ? 'Provjera traje dulje nego inače. Ako se pojavio okvir za provjeru, kliknite ga.'
+        : 'Provjeravamo da niste robot…';
+    if (Date.now() - pocetak > 60000) throw new Error('Provjera da niste robot nije uspjela. Osvježite stranicu i pokušajte ponovno.');
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  stanje.textContent = novaFoto ? 'Spremam čestitku i fotografiju…' : 'Spremam…';
+}
+
 forma.addEventListener('submit', async (e) => {
   e.preventDefault();
   pokaziGresku(null);
@@ -189,13 +206,16 @@ forma.addEventListener('submit', async (e) => {
   zaustavi();
   gumb.disabled = true;
   stanje.textContent = novaFoto ? 'Spremam čestitku i fotografiju…' : 'Spremam…';
-  const fd = new FormData(forma);
-  fd.delete('fotografija-izbor');
-  if (novaFoto) fd.set('fotografija', novaFoto, 'fotografija.jpg');
-  if (ukloniFoto) fd.set('ukloni_fotografiju', '1');
   try {
+    await cekajTurnstile();
+    const fd = new FormData(forma);
+    fd.delete('fotografija-izbor');
+    if (novaFoto) fd.set('fotografija', novaFoto, 'fotografija.jpg');
+    if (ukloniFoto) fd.set('ukloni_fotografiju', '1');
     const r = await fetch('/napravi/spremi', { method: 'POST', body: fd, credentials: 'same-origin' });
-    const o = (await r.json().catch(() => ({}))) as { id?: string; greska?: string; upozorenje?: string | null; izgubljena?: boolean };
+    const o = (await r.json().catch(() => ({}))) as { id?: string; greska?: string; upozorenje?: string | null; izgubljena?: boolean; captcha?: boolean };
+    // Token Turnstilea vrijedi za jedno slanje; nakon neuspjeha treba novi.
+    if (o.captcha) (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
     if (!r.ok || !o.id) {
       if (o.izgubljena) polje('id').value = '';
       throw new Error(o.greska ?? 'Čestitka se nije spremila. Pokušajte ponovno.');

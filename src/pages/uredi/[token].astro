@@ -4,6 +4,8 @@
 // Preuzima se tek na gumb (POST), jer roboti za pregled poveznica (WhatsApp, Viber) otvaraju link sami.
 // Stari uređaj nakon toga više ne može uređivati čestitku; link za primatelja ostaje isti.
 import Base from '../../layouts/Base.astro';
+import Turnstile from '../../components/Turnstile.astro';
+import { captchaToken } from '../../lib/turnstile';
 import '../../styles/uredivac.css';
 
 const token = Astro.params.token ?? '';
@@ -18,8 +20,10 @@ if (Astro.request.method === 'POST' && ispravan) {
   } else {
     let user = Astro.locals.user;
     if (!user) {
-      // TODO (CAPTCHA): kad se u Supabaseu uključi Turnstile, ovdje proslijediti options.captchaToken.
-      const { data, error } = await supabase.auth.signInAnonymously();
+      // CAPTCHA: token iz Turnstilea provjerava Supabase Auth (kad je zaštita tamo uključena).
+      const f = await Astro.request.formData().catch(() => new FormData());
+      const token = captchaToken(f);
+      const { data, error } = await supabase.auth.signInAnonymously(token ? { options: { captchaToken: token } } : undefined);
       if (error) console.error('signInAnonymously', error.message);
       user = data.user ?? null;
     }
@@ -47,6 +51,7 @@ if (Astro.request.method === 'POST' && ispravan) {
           </p>
           {greska && <p class="u-greska">{greska}</p>}
           <form method="post" class="g-gumbi">
+            {!Astro.locals.user && <Turnstile />}
             <button type="submit" class="p-btn">
               Vrati čestitku
             </button>

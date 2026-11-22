@@ -4,6 +4,7 @@
 // (scripts/cestitka.ts). Prvo spremanje kupca tiho prijavi anonimno (napravi/spremi.ts).
 // /napravi?id=<uuid> otvara čestitku koju je kupac već spremio na ovom uređaju.
 import Base from '../../layouts/Base.astro';
+import Turnstile from '../../components/Turnstile.astro';
 import ThemeFonts from '../../components/ThemeFonts.astro';
 import { TEME, tema as temaInfo } from '../../lib/teme';
 import { MELODIJE, datotekaMelodije } from '../../lib/melodije';
@@ -152,6 +153,8 @@ const pocetak = { id, unos, slikaUrl };
         </div>
         <p class="p-small u-greska" id="foto-greska" hidden></p>
       </fieldset>
+      {/* CAPTCHA samo dok kupac još nije prijavljen (prvo spremanje ga prijavi anonimno). */}
+      {!Astro.locals.user && <Turnstile />}
     </form>
 
     <aside class="u-pregled" aria-label="Pregled čestitke">
