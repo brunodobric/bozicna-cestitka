@@ -1,0 +1,30 @@
+---
+// Tanke trake boje stranice uz gornji i donji rub ekrana. Safari na iPhoneu (iOS 26) ne gleda
+// theme-color ni pozadinu stranice, nego boju fiksnih elemenata uz rub, pa ovim trakama
+// vrh i dno ekrana dobivaju boju stranice umjesto krem.
+interface Props {
+  boja: string;
+}
+const { boja } = Astro.props;
+---
+
+<div class="rub rub--vrh" style={`background:${boja}`} aria-hidden="true"></div>
+<div class="rub rub--dno" style={`background:${boja}`} aria-hidden="true"></div>
+
+<style>
+  .rub {
+    position: fixed;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 2147483646;
+  }
+  .rub--vrh {
+    top: 0;
+    height: max(1px, env(safe-area-inset-top));
+  }
+  .rub--dno {
+    bottom: 0;
+    height: max(1px, env(safe-area-inset-bottom));
+  }
+</style>
