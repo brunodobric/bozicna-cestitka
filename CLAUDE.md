@@ -60,6 +60,7 @@ npm run build
 - `003_duljina_poruke.sql` ograničava poruku na 320 znakova; pojedini dizajn traži manje (`najvisePoruka` u `teme.ts`, 180 do 320) i to mora provjeravati uređivač. I nju Bruno pokreće ručno.
 - `004_melodija.sql` dodaje stupac `melodija` i ponovno stvara `javna_cestitka` (vraća i melodiju). Bruno je pokreće ručno; dok ne pokrene, čestitke kupaca rade bez glazbe.
 - `005_placanje_i_brisanje.sql`: rok 30 dana u `potvrdi_uplatu_cestitke` (novi parametar `p_komada`), tablica `paketi`, `iskoristi_paket`, `preuzmi_cestitku` s paketom, `ocisti_istekle` i Storage pravila za brisanje fotografija bez čestitke. Na kraju ispiše `placanje_secret` za Cloudflare. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
+- `007_mail_kupcu.sql`: stupac `uplate.mail_poslan`, `mail_za_uplatu` (zauzme slanje i vrati podatke za mail) i `mail_nije_poslan`. Mail šalje `src/lib/mail.ts` (Resend, `RESEND_API_KEY`, s `cestitka@kuverta.hr`) nakon potvrde uplate, i iz webhooka i s povratka; baza pazi da ode samo jednom. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
 - `006_zakljucavanje.sql`: okidač `cestitka_zakljucavanje` i Storage pravila bez zamjene ili brisanja fotografije otvorene čestitke. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
 - `001_cestitke.sql` je provjerena na lokalnom Postgresu 16 sa zamjenskim auth/storage shemama (plaćanje, krivi ključ, RLS između kupaca, prvo otvaranje, prijenos tajnim linkom, istek).
 
@@ -91,4 +92,4 @@ Gotovo (22. 11. 2026.): migracija 005 pokrenuta, Stripe ključevi i webhook upis
 
 Gotovo (22. 11. 2026.): migracija 006 pokrenuta, zaključavanje spojeno.
 
-**Otvoreno / čeka Brunu:** spajanje `bozicna.kuverta.hr` na Worker, `SITE_URL`, adresa webhooka u Stripeu, proba plaćanja testnom karticom, isključiti suvišne načine plaćanja u Stripeu (MB WAY, Swish...), mail kupcu s linkovima (Resend; domena `kuverta.hr` je u Resendu već potvrđena za Kuvertu), proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.
+**Otvoreno / čeka Brunu:** spajanje `bozicna.kuverta.hr` na Worker, `SITE_URL`, adresa webhooka u Stripeu, proba plaćanja testnom karticom, isključiti suvišne načine plaćanja u Stripeu (MB WAY, Swish...), migracija 007 i `RESEND_API_KEY` za mail kupcu, proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.
