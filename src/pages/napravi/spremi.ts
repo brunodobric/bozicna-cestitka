@@ -3,6 +3,7 @@
 // prijavljenog korisnika. Zaštita: RLS na tablici (samo vlasnik), okidač cestitka_guard (ne može sam
 // platiti ni mijenjati tokene) i pravila bucketa (fotografija samo u mapi vlastite čestitke).
 import type { APIRoute } from 'astro';
+import { captchaToken } from '../../lib/turnstile';
 import { provjeri } from '../../lib/uredivac';
 import { BUCKET, MAX_BYTES, ispravnaPutanja, novaPutanja, sniffImage } from '../../lib/slike';
 
@@ -37,10 +38,13 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
   const { supabase } = locals;
   let user = locals.user;
   if (!user) {
-    // TODO (CAPTCHA): kad se u Supabaseu uključi Turnstile, ovdje proslijediti options.captchaToken.
-    const { data, error } = await supabase.auth.signInAnonymously();
+    // CAPTCHA: token iz Turnstilea provjerava Supabase Auth (kad je zaštita tamo uključena).
+    const token = captchaToken(f);
+    const { data, error } = await supabase.auth.signInAnonymously(token ? { options: { captchaToken: token } } : undefined);
     if (error || !data.user) {
       console.error('signInAnonymously', error?.message);
+      if (/captcha/i.test(error?.message ?? ''))
+        return odgovor(400, { greska: 'Provjera da niste robot nije uspjela. Pokušajte ponovno.', captcha: true });
       return odgovor(503, { greska: 'Spremanje trenutno ne radi. Pokušajte za minutu.' });
     }
     user = data.user;

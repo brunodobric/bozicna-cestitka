@@ -1,0 +1,94 @@
+---
+// Widget Turnstile (iz Kuverte). Obrasce koje šalje vlastita skripta (uređivač) ova skripta ne dira;
+// uređivač sam čeka token (scripts/uredivac.ts).
+import { turnstileSiteKey } from '../lib/turnstile';
+const siteKey = turnstileSiteKey();
+---
+
+{
+  siteKey && (
+    <>
+      <div
+        class="cf-turnstile"
+        data-sitekey={siteKey}
+        data-language="hr"
+        data-appearance="interaction-only"
+        data-refresh-expired="auto"
+      />
+      <p class="cf-turnstile-cekanje" role="status" aria-live="polite" hidden style="font-size:.875rem;margin:.5rem 0">
+        Provjeravamo da niste robot, trenutak...
+      </p>
+      <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+      <script is:inline>
+        // Turnstile treba sekundu ili dvije da izda token. Kad preglednik sam upiše e-mail i lozinku,
+        // obrazac se može poslati prije toga, bez tokena, pa provjera padne. Zato slanje pričekamo
+        // dok token ne stigne i onda ga pošaljemo sami.
+        (() => {
+          if (window.__cestitkaTurnstile) return;
+          window.__cestitkaTurnstile = true;
+
+          const token = (form) => form.querySelector('[name="cf-turnstile-response"]')?.value || '';
+          const buttons = (form) => form.querySelectorAll('button[type="submit"], button:not([type]), input[type="submit"]');
+
+          document.addEventListener('submit', (e) => {
+            const form = e.target;
+            // Obrasce koje šalje vlastita skripta (preventDefault) ne diramo.
+            if (!(form instanceof HTMLFormElement) || e.defaultPrevented) return;
+            if (!form.querySelector('.cf-turnstile')) return;
+
+            if (token(form)) {
+              // Token vrijedi za samo jedno slanje. Drugi dodir gumba (dvoklik, nestrpljivi dodir dok
+              // se stranica učitava) poslao bi isti token još jednom, pa bi taj zahtjev pao s
+              // "timeout-or-duplicate" i korisnik bi vidio grešku iako je prvi zahtjev uspio.
+              if (form.dataset.poslano) {
+                e.preventDefault();
+                return;
+              }
+              form.dataset.poslano = '1';
+              // Gumbe gasimo tek nakon slanja, da ime i vrijednost kliknutog gumba ostanu u obrascu.
+              setTimeout(() => buttons(form).forEach((b) => (b.disabled = true)), 0);
+              return;
+            }
+
+            e.preventDefault();
+            if (form.dataset.cekaProvjeru) return;
+            form.dataset.cekaProvjeru = '1';
+
+            const submitter = e.submitter;
+            const poruka = form.querySelector('.cf-turnstile-cekanje');
+            buttons(form).forEach((b) => (b.disabled = true));
+            if (poruka) poruka.hidden = false;
+
+            const pocetak = Date.now();
+            const provjeri = () => {
+              if (!token(form)) {
+                if (poruka && Date.now() - pocetak > 10000) {
+                  poruka.textContent =
+                    'Provjera traje dulje nego inače. Ako se pojavio okvir za provjeru, kliknite ga. Ako ne, osvježite stranicu.';
+                }
+                setTimeout(provjeri, 200);
+                return;
+              }
+              delete form.dataset.cekaProvjeru;
+              buttons(form).forEach((b) => (b.disabled = false));
+              if (poruka) poruka.hidden = true;
+              if (form.requestSubmit) form.requestSubmit(submitter && submitter.form === form ? submitter : undefined);
+              else form.submit();
+            };
+            provjeri();
+          });
+
+          // Povratak na stranicu tipkom Natrag (iz predmemorije): stari token je već iskorišten.
+          window.addEventListener('pageshow', (e) => {
+            if (!e.persisted) return;
+            document.querySelectorAll('form[data-poslano]').forEach((form) => {
+              delete form.dataset.poslano;
+              buttons(form).forEach((b) => (b.disabled = false));
+            });
+            window.turnstile?.reset();
+          });
+        })();
+      </script>
+    </>
+  )
+}
