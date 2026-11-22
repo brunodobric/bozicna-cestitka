@@ -122,8 +122,10 @@ grant execute on function public.preuzmi_cestitku(text) to authenticated;
 -- Je li fotografija ostala bez čestitke (čestitka obrisana). Takvu smije obrisati bilo tko:
 -- nitko je više ne koristi, a put se ne može pogoditi. Security definer jer anon ne vidi tablicu cestitke.
 create or replace function public.slika_bez_cestitke(p_name text)
-returns boolean language sql stable security definer set search_path = public as $$
-  select not exists (select 1 from public.cestitke c where c.id::text = (storage.foldername(p_name))[1]);
+returns boolean language plpgsql stable security definer set search_path = public as $$
+begin
+  return not exists (select 1 from public.cestitke c where c.id::text = (storage.foldername(p_name))[1]);
+end;
 $$;
 revoke all on function public.slika_bez_cestitke(text) from public;
 grant execute on function public.slika_bez_cestitke(text) to anon, authenticated;
