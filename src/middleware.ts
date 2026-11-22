@@ -1,10 +1,26 @@
 import { defineMiddleware } from "astro:middleware";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { env } from "cloudflare:workers";
+import { siteOrigin } from "./lib/seo";
+
+// Stara adresa na workers.dev. Kad je upisan SITE_URL (https://bozicna.kuverta.hr), posjeti se preusmjeravaju
+// na pravu domenu. Webhook ostaje na staroj adresi dok se u Stripeu ne promijeni, a pregledi grana
+// (<grana>-bozicna-cestitka...workers.dev) ostaju gdje jesu.
+const STARA_ADRESA = "bozicna-cestitka.bruno-dobric32.workers.dev";
 
 // Preuzeto iz Kuverte (src/middleware.ts), bez praćenja izvora posjeta.
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  const { url, request } = context;
+  if (
+    url.hostname === STARA_ADRESA &&
+    (request.method === "GET" || request.method === "HEAD") &&
+    !url.pathname.startsWith("/stripe/")
+  ) {
+    const nova = siteOrigin(url);
+    if (nova !== url.origin)
+      return Response.redirect(nova + url.pathname + url.search, 302);
+  }
   const vars = env as unknown as Record<string, unknown>;
   // Uzimamo samo adresu projekta (https://xxxx.supabase.co), pa ne smeta ako je zalijepljen
   // i nastavak poput /rest/v1/ ili kosa crta na kraju.

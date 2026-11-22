@@ -72,7 +72,7 @@ npm run build
 ## Okruženja
 
 - **Supabase:** projekt `bozicna-cestitka` (ref `ofnvwzpvyjztbllhuewy`, Frankfurt) u zasebnoj besplatnoj organizaciji na računu info@digitalnipartner.hr; Bruno je u njoj Developer. Claudeov Supabase konektor taj projekt ne vidi, pa Bruno migracije pokreće ručno u SQL Editoru. `001_cestitke.sql` pokrenuta 21. 11. 2026., anonimna prijava uključena.
-- **Cloudflare:** Worker `bozicna-cestitka`, Workers Builds s repozitorija `brunodobric/bozicna-cestitka` (grana `main`), adresa https://bozicna-cestitka.bruno-dobric32.workers.dev. Varijable `SUPABASE_URL` i `SUPABASE_ANON_KEY` upisane; za plaćanje trebaju `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `PLACANJE_SECRET` i za probu `PLACANJE_TESTNO=da`. Node za build je u `.node-version` (Astro 7.4 traži najmanje 22.23.4).
+- **Cloudflare:** Worker `bozicna-cestitka`, Workers Builds s repozitorija `brunodobric/bozicna-cestitka` (grana `main`), adresa **https://bozicna.kuverta.hr** (Custom Domain na Workeru, zona `kuverta.hr` je na istom Cloudflare računu kao Kuverta; Bruno je odabrao 22. 11. 2026., `cestitke.kuverta.hr` ostaje za kasnije druge vrste čestitki). Stara adresa https://bozicna-cestitka.bruno-dobric32.workers.dev preusmjerava na novu kad je upisan `SITE_URL` (`src/middleware.ts`), osim `/stripe/`. Varijable `SUPABASE_URL` i `SUPABASE_ANON_KEY` upisane; za plaćanje trebaju `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `PLACANJE_SECRET` i za probu `PLACANJE_TESTNO=da`. Node za build je u `.node-version` (Astro 7.4 traži najmanje 22.23.4).
 
 ## Stanje
 
@@ -89,4 +89,6 @@ Gotovo (22. 11. 2026.): plaćanje preko Stripea (jedna, paket 5, paket 10), rok 
 
 Gotovo (22. 11. 2026.): migracija 005 pokrenuta, Stripe ključevi i webhook upisani, plaćanje na našoj stranici spojeno.
 
-**Otvoreno / čeka Brunu:** migracija `006_zakljucavanje.sql`, proba plaćanja testnom karticom, isključiti suvišne načine plaćanja u Stripeu (MB WAY, Swish...), mail kupcu s linkovima (Resend, čeka ime i domenu), proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime i domena, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.
+Gotovo (22. 11. 2026.): migracija 006 pokrenuta, zaključavanje spojeno.
+
+**Otvoreno / čeka Brunu:** spajanje `bozicna.kuverta.hr` na Worker, `SITE_URL`, adresa webhooka u Stripeu, proba plaćanja testnom karticom, isključiti suvišne načine plaćanja u Stripeu (MB WAY, Swish...), mail kupcu s linkovima (Resend; domena `kuverta.hr` je u Resendu već potvrđena za Kuvertu), proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.
