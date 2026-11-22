@@ -23,6 +23,7 @@ const origin = siteOrigin(Astro.url);
 const stil = Object.entries(info.vars)
   .map(([k, v]) => `${k}:${v}`)
   .join(';');
+import Rubovi from '../components/Rubovi.astro';
 ---
 
 <!doctype html>
@@ -52,6 +53,7 @@ const stil = Object.entries(info.vars)
     <ThemeFonts families={info.fonts} preload={info.preload} />
   </head>
   <body class="inv" data-tema={info.key} style={`background:${info.bg};${stil}`}>
+    <Rubovi boja={info.bg} />
     <slot />
     <Snijeg />
   </body>
