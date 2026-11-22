@@ -14,3 +14,5 @@ export const ponuda = (key: unknown): Ponuda | null => PONUDE.find((p) => p.key 
 export const ponudaZaKomada = (n: unknown): Ponuda | null => PONUDE.find((p) => String(p.komada) === String(n)) ?? null;
 
 export const iznos = (centi: number) => (centi / 100).toFixed(2).replace('.', ',') + ' €';
+
+export const nazivPonude = (komada: number) => (komada === 1 ? 'Jedna čestitka' : `Paket od ${komada} čestitki`);

@@ -5,7 +5,7 @@
 // Bez STRIPE_PUBLISHABLE_KEY ili kad se polja ne učitaju, plaća se na Stripeovoj stranici (POST /napravi/plati).
 import Base from '../../../layouts/Base.astro';
 import { otvoriUgradenuNaplatu, placanjeDostupno, stripeJavniKljuc, testnoPlacanje } from '../../../lib/placanje';
-import { PONUDE, iznos, ponuda as nadiPonudu } from '../../../lib/cijena';
+import { PONUDE, iznos, nazivPonude, ponuda as nadiPonudu } from '../../../lib/cijena';
 import jakartaLatin from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url';
 import jakartaExt from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-wght-normal.woff2?url';
 import '../../../styles/uredivac.css';
@@ -25,7 +25,6 @@ const izPaketa = paket?.preostalo ?? 0;
 const mozePlatiti = placanjeDostupno();
 const poKomadu = (centi: number, n: number) => iznos(Math.round(centi / n));
 const javniKljuc = mozePlatiti ? stripeJavniKljuc() : '';
-const nazivPonude = (komada: number) => (komada === 1 ? 'Jedna čestitka' : `Paket od ${komada} čestitki`);
 
 // Drugi korak: odabrana ponuda i polja za karticu.
 const odabrana = mozePlatiti && javniKljuc ? nadiPonudu(Astro.url.searchParams.get('ponuda')) : null;
@@ -82,6 +81,10 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
           </div>
           <p id="pl-poruka" class="u-greska" role="alert" hidden />
           {testnoPlacanje() && <p class="p-muted g-mala">Plaćanje je testno: kartica 4242 4242 4242 4242, bilo koji budući datum i CVC.</p>}
+          <p class="pl-pristanak">
+            Plaćanjem tražite da čestitka bude dostupna odmah i potvrđujete da time gubite pravo na odustanak od kupnje u roku od 14 dana.
+            Više u <a href="/uvjeti#odustanak">uvjetima korištenja</a> i <a href="/privatnost">pravilima privatnosti</a>.
+          </p>
           <button type="submit" id="pl-gumb" class="p-btn pl-gumb" disabled>
             Plati {iznos(odabrana.centi)}
           </button>
@@ -132,6 +135,10 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
               <p class="p-muted g-mala">
                 Ista cijena s fotografijom i bez nje. Svaka čestitka vrijedi 30 dana od plaćanja, a zatim se briše zajedno s
                 fotografijom.{testnoPlacanje() && ' Plaćanje je testno: koristite Stripeovu testnu karticu 4242 4242 4242 4242.'}
+              </p>
+              <p class="pl-pristanak">
+                Plaćanjem tražite da čestitka bude dostupna odmah i potvrđujete da time gubite pravo na odustanak od kupnje u roku od 14
+                dana. Više u <a href="/uvjeti#odustanak">uvjetima korištenja</a>.
               </p>
               <div class="g-gumbi">
                 <button type="submit" class="p-btn">

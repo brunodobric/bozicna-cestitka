@@ -49,6 +49,10 @@ export function sadrzajMaila(p: Podaci, origin: string) {
     odlomci.push(
       `U paketu su vam ostale još ${p.komada - 1} ${p.komada - 1 < 5 ? "čestitke" : "čestitki"}. Iskoristite ih na istom uređaju na ${origin}/napravi. Tajni link ih prenosi zajedno s ovom čestitkom.`,
     );
+  // Potvrda na trajnom mediju (Zakon o zaštiti potrošača): kupac je tražio isporuku odmah i time gubi pravo na raskid.
+  odlomci.push(
+    `Pri plaćanju ste zatražili da čestitka bude dostupna odmah i potvrdili da time gubite pravo na odustanak od kupnje u roku od 14 dana. Uvjeti korištenja: ${origin}/uvjeti`,
+  );
   odlomci.push("Ako niste vi platili ovu čestitku, samo odgovorite na ovaj mail.");
 
   const text = [naslov, "", ...odlomci.map((o) => (o.startsWith("@@") ? o.slice(2) : o) + "\n")].join("\n");

@@ -1,0 +1,147 @@
+---
+// Pravila privatnosti. Podaci o obrtu su isti kao na kuverta.hr/privatnost.
+// Kad se promijeni obrada (novi dobavljač, rok brisanja, kolačić), promijeni i ovaj tekst i datum.
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Pravila privatnosti | Božićna čestitka" description="Koje podatke prikupljamo kad napravite ili otvorite božićnu čestitku, tko ih obrađuje i kada se brišu.">
+  <article class="pravno">
+    <h1>Pravila privatnosti</h1>
+    <p class="p-muted p-small">Zadnje ažurirano: 22. studenoga 2026.</p>
+
+    <p>
+      Ovdje piše koje podatke obrađujemo kad napravite čestitku na bozicna.kuverta.hr ili otvorite čestitku koju vam je netko poslao,
+      zašto ih trebamo i kada ih brišemo. Čestitku možete napraviti bez registracije, imena i lozinke.
+    </p>
+
+    <h2>1. Tko je voditelj obrade</h2>
+    <p>
+      Digitalni partner, obrt za digitalne usluge, vl. Bruno Dobrić, Klanac 4A, 10000 Zagreb, OIB 32056979864. Isti obrt izrađuje Kuvertu
+      (kuverta.hr). Za sva pitanja o podacima pišite na <a href="mailto:kontakt@kuverta.hr">kontakt@kuverta.hr</a>.
+    </p>
+
+    <h2>2. Koje podatke obrađujemo</h2>
+    <h3>Kad radite čestitku</h3>
+    <ul>
+      <li>
+        <strong>Anonimni račun.</strong> Kad prvi put spremite čestitku, preglednik dobije nasumičnu oznaku računa. Ona ne sadrži ime, mail ni
+        broj telefona, a služi da samo vi na tom uređaju možete mijenjati svoju čestitku.
+      </li>
+      <li>
+        <strong>Sadržaj čestitke:</strong> ime na kuverti, naslov, poruka, potpis, odabrani dizajn i melodija te jedna fotografija ako je
+        dodate. Fotografija se u vašem pregledniku smanji prije slanja i pri tome gubi podatke iz kamere, na primjer lokaciju.
+      </li>
+      <li>
+        <strong>Podaci o uplati:</strong> e-mail koji upišete za potvrdu, iznos, datum, odabrana ponuda i Stripeova oznaka plaćanja. Broj
+        kartice i ostale podatke kartice upisujete izravno u Stripeova polja i oni do nas ne dolaze.
+      </li>
+      <li><strong>Preostale čestitke iz paketa</strong>, vezane uz vaš anonimni račun.</li>
+    </ul>
+    <h3>Kad otvarate čestitku</h3>
+    <p>
+      Bilježimo samo vrijeme prvog otvaranja, jer se nakon toga čestitka više ne može mijenjati. Ne tražimo ime ni mail primatelja i ne
+      pratimo tko je otvorio čestitku.
+    </p>
+    <h3>Tehnički zapisi</h3>
+    <p>
+      Poslužitelji kratko zapisuju IP adresu, vrstu preglednika i vrijeme zahtjeva. To trebamo za sigurnost i otklanjanje grešaka, a zapise
+      čuvaju naši dobavljači (Cloudflare, Supabase) prema svojim rokovima.
+    </p>
+
+    <h2>3. Zašto obrađujemo podatke i na kojoj osnovi</h2>
+    <ul>
+      <li>
+        <strong>Izrada, spremanje i prikaz čestitke, plaćanje i mail s linkom:</strong> izvršenje ugovora s vama (članak 6. stavak 1. točka
+        (b) Opće uredbe o zaštiti podataka, GDPR).
+      </li>
+      <li><strong>Čuvanje podataka o uplati:</strong> zakonska obveza iz poreznih i računovodstvenih propisa (članak 6. stavak 1. točka (c)).</li>
+      <li>
+        <strong>Zaštita od zlouporabe i tehnički zapisi:</strong> naš legitimni interes da stranica radi sigurno (članak 6. stavak 1. točka
+        (f)).
+      </li>
+    </ul>
+    <p>
+      Podatke ne prodajemo, ne koristimo ih za oglašavanje i ne radimo profile korisnika. Na stranici nema analitike, oglasnih piksela ni
+      kolačića za praćenje.
+    </p>
+
+    <h2>4. Osobe na čestitci i fotografiji</h2>
+    <p>
+      U čestitku upisujete ime primatelja, a fotografija može prikazivati druge ljude. Te podatke obrađujemo samo da bismo prikazali čestitku
+      osobi kojoj ste poslali link. Molimo vas da dodate samo fotografiju koju smijete dijeliti i na kojoj se ljudi slažu da budu na
+      čestitci.
+    </p>
+    <p>
+      Čestitka je dostupna svakome tko ima link. Link je dug i nasumičan pa se ne može pogoditi, a stranica čestitke je skrivena od
+      tražilica. Ako link podijelite javno, čestitku može vidjeti svatko tko ga dobije.
+    </p>
+
+    <h2>5. Tko još obrađuje podatke</h2>
+    <p>Koristimo ove dobavljače, s kojima imamo ugovor o obradi podataka:</p>
+    <ul>
+      <li><strong>Supabase</strong> (baza podataka, anonimna prijava i spremanje fotografija), poslužitelji u Frankfurtu, Njemačka.</li>
+      <li><strong>Cloudflare</strong> (posluživanje stranice i zaštita mreže).</li>
+      <li><strong>Resend</strong> (slanje maila s linkom nakon uplate).</li>
+      <li>
+        <strong>Stripe</strong> (Stripe Payments Europe, Limited, Irska) obrađuje plaćanje karticom. Za podatke o plaćanju i sprječavanje
+        prijevara Stripe je samostalni voditelj obrade i primjenjuje svoja pravila privatnosti (stripe.com/privacy).
+      </li>
+    </ul>
+    <p>
+      Neki od tih dobavljača su tvrtke iz SAD-a ili imaju podršku izvan Europskog gospodarskog prostora. Tada se prijenos temelji na odluci
+      Europske komisije o primjerenosti (EU-US Data Privacy Framework) ili na standardnim ugovornim klauzulama.
+    </p>
+
+    <h2>6. Koliko dugo čuvamo podatke</h2>
+    <ul>
+      <li>
+        <strong>Plaćena čestitka i njezina fotografija</strong> brišu se 30 dana nakon plaćanja. Točan datum piše na stranici nakon plaćanja
+        i u mailu.
+      </li>
+      <li><strong>Neplaćena čestitka</strong> briše se kad je 30 dana nitko ne mijenja.</li>
+      <li>
+        Brisanje je trajno, a radi se automatski jednom dnevno. Ako želite da se čestitka izbriše ranije, pišite nam
+        s linkom čestitke.
+      </li>
+      <li><strong>Podaci o uplati</strong> ostaju onoliko koliko to traže porezni i računovodstveni propisi, i nakon što se čestitka izbriše.</li>
+    </ul>
+
+    <h2 id="kolacici">7. Kolačići i spremanje u pregledniku</h2>
+    <ul>
+      <li>
+        <strong>Kolačić prijave</strong> (naziv počinje sa <code>sb-</code>) čuva vaš anonimni račun da biste se mogli vratiti čestitci na
+        istom uređaju. Nužan je za uslugu, preglednik ga ne može čitati skriptom i traje do 400 dana ili dok ga ne obrišete.
+      </li>
+      <li>
+        <strong>Zapis u pregledniku</strong> (<code>cestitka-kuverta:…</code>) pamti je li kuverta već otvorena, da se ne otvara svaki put
+        ispočetka. Ostaje samo na vašem uređaju.
+      </li>
+      <li>
+        Na stranici za plaćanje Stripe postavlja svoje kolačiće za sigurnost plaćanja i sprječavanje prijevara.
+      </li>
+    </ul>
+    <p>Budući da koristimo samo nužne kolačiće, ne tražimo privolu za kolačiće.</p>
+
+    <h2>8. Vaša prava</h2>
+    <p>
+      Imate pravo na pristup svojim podacima, ispravak, brisanje, ograničenje obrade, prenosivost i prigovor na obradu koja se temelji na
+      legitimnom interesu. Javite se na <a href="mailto:kontakt@kuverta.hr">kontakt@kuverta.hr</a> i odgovorit ćemo u roku od mjesec dana.
+      Budući da ne znamo tko ste, u mailu nam pošaljite link čestitke ili e-mail iz uplate da bismo pronašli podatke.
+    </p>
+    <p>
+      Imate pravo podnijeti pritužbu nadzornom tijelu: Agencija za zaštitu osobnih podataka (AZOP), Selska cesta 136, 10000 Zagreb,
+      <a href="https://azop.hr" rel="noopener">azop.hr</a>.
+    </p>
+
+    <h2>9. Sigurnost</h2>
+    <p>
+      Promet ide samo preko HTTPS-a. U bazi svaki kupac vidi samo svoje čestitke, a primatelj vidi samo čestitku iz svog linka. Fotografije
+      nisu nigdje popisane, a spremljene su pod dugom nasumičnom adresom koja se ne može pogoditi.
+    </p>
+
+    <h2>10. Izmjene</h2>
+    <p>Ako promijenimo način obrade, ovdje ćemo objaviti novu verziju s novim datumom.</p>
+
+    <p class="p-small"><a href="/uvjeti">Uvjeti korištenja</a></p>
+  </article>
+</Base>
