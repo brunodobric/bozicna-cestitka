@@ -6,6 +6,7 @@
 import CestitkaLayout from '../../layouts/CestitkaLayout.astro';
 import Envelope from '../../components/Envelope.astro';
 import Karta from '../../components/Karta.astro';
+import Glazba from '../../components/Glazba.astro';
 import { dohvatiJavnu, ispravanToken, javniUrlSlike } from '../../lib/cestitka';
 import { tema as temaInfo } from '../../lib/teme';
 import { ROBOT, SITE_NAME } from '../../lib/seo';
@@ -23,6 +24,7 @@ const slika = c ? javniUrlSlike(Astro.locals.supabaseUrl, c.slika) : null;
     <CestitkaLayout tema={info.key} envelope={token}>
       <Envelope storageKey={token!} za={c.za} pecat={info.pecat} deco={info.deco} />
       <Karta tema={info.key} naslov={c.naslov} poruka={c.poruka} od={c.od} slika={slika} />
+      <Glazba melodija={c.melodija ?? null} />
     </CestitkaLayout>
   ) : (
     <CestitkaLayout tema="klasicna">

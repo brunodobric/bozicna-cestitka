@@ -4,12 +4,18 @@
 import CestitkaLayout from '../../layouts/CestitkaLayout.astro';
 import Envelope from '../../components/Envelope.astro';
 import Karta from '../../components/Karta.astro';
+import Glazba from '../../components/Glazba.astro';
 import { PRIMJERI } from '../../lib/cestitka';
 import { TEME } from '../../lib/teme';
+import { melodija } from '../../lib/melodije';
 
 const info = TEME.find((t) => t.key === Astro.params.tema);
 if (!info) return new Response(null, { status: 404 });
 const p = { ...PRIMJERI[info.key] };
+// ?melodija=<ključ> pokazuje primjer s drugom melodijom (za odabir u uređivaču), ?melodija=bez bez glazbe.
+const trazena = Astro.url.searchParams.get('melodija');
+if (trazena === 'bez') p.melodija = null;
+else if (melodija(trazena)) p.melodija = trazena;
 // Samo u razvoju: ?proba=dugo (najdulja dopuštena poruka) i ?proba=foto (s fotografijom), za provjeru slaganja teksta.
 if (import.meta.env.DEV) {
   const proba = Astro.url.searchParams.get('proba');
@@ -21,4 +27,5 @@ if (import.meta.env.DEV) {
 <CestitkaLayout tema={info.key} envelope="" noindex={false} title={`Primjer čestitke: ${info.naziv}`}>
   <Envelope storageKey="" za={p.za} pecat={info.pecat} deco={info.deco} />
   <Karta tema={info.key} naslov={p.naslov} poruka={p.poruka} od={p.od} slika={p.slika} primjer />
+  <Glazba melodija={p.melodija ?? null} />
 </CestitkaLayout>
