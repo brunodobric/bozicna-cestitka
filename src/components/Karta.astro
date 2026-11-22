@@ -63,8 +63,9 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
             Otvori ponovno
           </button>
         </div>
-        <p class="napomena" id="napomena">
-          Na mobitelu se otvara izbornik za dijeljenje: odaberite „Spremi sliku”.
+        <p class="napomena" id="napomena" hidden></p>
+        <p class="cest__potpis">
+          <a href="/">Pošalji nekome ovakvu čestitku.</a>
         </p>
       </>
     )
@@ -103,7 +104,10 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
       if (gumb) gumb.disabled = false;
     } catch (e) {
       console.error('cestitka', e);
-      if (napomena) napomena.textContent = 'Čestitka se nije uspjela prikazati. Osvježite stranicu.';
+      if (napomena) {
+        napomena.textContent = 'Čestitka se nije uspjela prikazati. Osvježite stranicu.';
+        napomena.hidden = false;
+      }
     }
   })();
 
@@ -143,7 +147,10 @@ const alt = [naslov, poruka, od].filter(Boolean).join('. ');
       await spremi(blob, fotoBlob);
     } catch (e) {
       console.error('spremi', e);
-      if (napomena) napomena.textContent = 'Slika se nije spremila. Pokušajte ponovno ili napravite snimku zaslona.';
+      if (napomena) {
+        napomena.textContent = 'Slika se nije spremila. Pokušajte ponovno ili napravite snimku zaslona.';
+        napomena.hidden = false;
+      }
     } finally {
       gumb.disabled = false;
     }

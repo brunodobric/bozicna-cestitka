@@ -18,6 +18,8 @@ let id = '';
 let unos: Unos = { ...PRAZNO };
 let slikaUrl: string | null = null;
 let izgubljena = false;
+let placeno = false;
+let otvorena = false;
 
 if (UUID.test(trazeniId)) {
   const { data } = Astro.locals.user
@@ -34,6 +36,8 @@ if (UUID.test(trazeniId)) {
       melodija: data.melodija ?? null,
     };
     slikaUrl = javniUrlSlike(Astro.locals.supabaseUrl, data.slika);
+    placeno = !!data.placeno;
+    otvorena = !!data.prvo_otvaranje;
   } else {
     izgubljena = true;
   }
@@ -55,9 +59,22 @@ const pocetak = { id, unos, slikaUrl };
       <h1>Napravi čestitku</h1>
       <p class="p-muted">Odaberite dizajn, napišite poruku i odaberite glazbu. Pregled čestitke se mijenja dok pišete.</p>
       {izgubljena && <p class="u-obavijest">Ta čestitka nije spremljena na ovom uređaju. Možete napraviti novu.</p>}
+      {
+        otvorena ? (
+          <p class="u-obavijest">
+            Primatelj je već otvorio ovu čestitku, pa se više ne može mijenjati. <a href="/napravi">Napravite novu čestitku</a>.
+          </p>
+        ) : (
+          placeno && (
+            <p class="u-obavijest">
+              Čestitka je plaćena. Poruku i ostalo možete ispraviti dok je primatelj ne otvori, a ime na kuverti ostaje isto.
+            </p>
+          )
+        )
+      }
     </header>
 
-    <form class="u-obrazac" id="obrazac" novalidate>
+    <form class="u-obrazac" id="obrazac" novalidate inert={otvorena}>
       <input type="hidden" name="id" value={id} />
 
       <fieldset class="u-korak">
@@ -79,7 +96,7 @@ const pocetak = { id, unos, slikaUrl };
         <legend><span>2</span> Tekst</legend>
         <label class="u-polje">
           <span>Na kuverti piše</span>
-          <input name="za" value={unos.za} maxlength={NAJVISE.za} placeholder="npr. Za baku i djeda" autocomplete="off" />
+          <input name="za" value={unos.za} maxlength={NAJVISE.za} placeholder="npr. Za baku i djeda" autocomplete="off" readonly={placeno} />
         </label>
         <label class="u-polje">
           <span>Naslov</span>
@@ -144,8 +161,27 @@ const pocetak = { id, unos, slikaUrl };
       </div>
       <p class="u-greska" id="greska" role="alert" hidden></p>
       <div class="u-akcije">
-        <button type="submit" form="obrazac" class="p-btn" id="spremi">Spremi i pogledaj u kuverti</button>
-        <p class="p-small p-muted" id="stanje" aria-live="polite">Plaćanje i slanje linka dolaze nakon spremanja.</p>
+        {
+          otvorena ? (
+            <>
+              <a class="p-btn" href={`/napravi/gotovo/${id}`}>
+                Link za slanje
+              </a>
+              {/* skripta uređivača očekuje ove elemente */}
+              <button type="button" id="spremi" hidden disabled />
+              <p id="stanje" hidden />
+            </>
+          ) : (
+            <>
+              <button type="submit" form="obrazac" class="p-btn" id="spremi">
+                Spremi i pogledaj u kuverti
+              </button>
+              <p class="p-small p-muted" id="stanje" aria-live="polite">
+                {placeno ? 'Promjene vidi primatelj čim spremite.' : 'Plaćanje i slanje linka dolaze nakon spremanja.'}
+              </p>
+            </>
+          )
+        }
       </div>
     </aside>
   </div>

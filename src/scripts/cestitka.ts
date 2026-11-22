@@ -255,10 +255,14 @@ export function uBlob(c: HTMLCanvasElement): Promise<Blob | null> {
 }
 
 // Čestitka s fotografijom ima dvije slike (čestitka i kartica s fotografijom) i obje se spremaju odjednom.
+// Mobitel i tablet (dodir bez miša): slika ide kroz izbornik za dijeljenje ("Spremi sliku" u galeriju).
+// Računalo: slika se odmah preuzima u mapu Preuzimanja, bez izbornika (Bruno, 22. 11. 2026.).
+export const jeMobitel = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
 export async function spremi(blob: Blob, fotografija: Blob | null = null): Promise<void> {
   const files = [new File([blob], 'bozicna-cestitka.png', { type: 'image/png' })];
   if (fotografija) files.push(new File([fotografija], 'bozicna-cestitka-fotografija.png', { type: 'image/png' }));
-  if (navigator.canShare && navigator.canShare({ files })) {
+  if (jeMobitel() && navigator.canShare && navigator.canShare({ files })) {
     try {
       await navigator.share({ files, title: 'Božićna čestitka' });
       return;
