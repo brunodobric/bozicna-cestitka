@@ -63,7 +63,7 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
             <span class="pl-sazetak__opis">
               {odabrana.komada > 1
                 ? `Ova čestitka se otključa odmah, a preostale (${odabrana.komada - 1}) koristite na ovom uređaju.`
-                : 'Čestitka vrijedi 30 dana od plaćanja.'}
+                : 'Čestitka vrijedi tri mjeseca od plaćanja.'}
             </span>
           </div>
           <span class="pl-sazetak__cijena">{iznos(odabrana.centi)}</span>
@@ -133,7 +133,7 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
                 </label>
               ))}
               <p class="p-muted g-mala">
-                Ista cijena s fotografijom i bez nje. Svaka čestitka vrijedi 30 dana od plaćanja, a zatim se briše zajedno s
+                Ista cijena s fotografijom i bez nje. Svaka čestitka vrijedi tri mjeseca od plaćanja, a zatim se briše zajedno s
                 fotografijom.{testnoPlacanje() && ' Plaćanje je testno: koristite Stripeovu testnu karticu 4242 4242 4242 4242.'}
               </p>
               <p class="pl-pristanak">

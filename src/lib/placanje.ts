@@ -77,8 +77,8 @@ function osnovaSesije(
   b.set(
     "line_items[0][price_data][product_data][description]",
     p.komada > 1
-      ? `Prva čestitka se otključa odmah, a preostale (${p.komada - 1}) koristite na istom uređaju. Svaka vrijedi 30 dana.`
-      : "Čestitka vrijedi 30 dana od uplate.",
+      ? `Prva čestitka se otključa odmah, a preostale (${p.komada - 1}) koristite na istom uređaju. Svaka vrijedi tri mjeseca.`
+      : "Čestitka vrijedi tri mjeseca od uplate.",
   );
   b.set("metadata[cestitka_id]", cestitkaId);
   b.set("metadata[owner_id]", user.id);
