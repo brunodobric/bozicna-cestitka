@@ -2,7 +2,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { createServerClient, parseCookieHeader } from '@supabase/ssr';
 import { env } from 'cloudflare:workers';
 
-// Preuzeto iz Kuverte (src/middleware.ts), bez praćenja izvora posjeta i bez Stripea (dolazi u koraku 7).
+// Preuzeto iz Kuverte (src/middleware.ts), bez praćenja izvora posjeta.
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const vars = env as unknown as Record<string, unknown>;
@@ -64,7 +64,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     "base-uri 'self'",
     "object-src 'none'",
     "frame-ancestors 'none'",
-    "form-action 'self'",
+    // Gumb "Plati" šalje obrazac nama, a mi preusmjerimo na Stripeovu stranicu plaćanja.
+    "form-action 'self' https://checkout.stripe.com",
     // Astro ubacuje male inline skripte; Turnstile učitava skriptu i okvir s Cloudflarea.
     "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
     'frame-src https://challenges.cloudflare.com',

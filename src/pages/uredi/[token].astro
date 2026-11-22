@@ -1,0 +1,60 @@
+---
+// Tajni link za uređivanje (/uredi/<uredi_token>): vraća čestitku i preostale čestitke iz paketa
+// na ovaj uređaj, npr. nakon brisanja podataka preglednika ili na drugom mobitelu.
+// Preuzima se tek na gumb (POST), jer roboti za pregled poveznica (WhatsApp, Viber) otvaraju link sami.
+// Stari uređaj nakon toga više ne može uređivati čestitku; link za primatelja ostaje isti.
+import Base from '../../layouts/Base.astro';
+import '../../styles/uredivac.css';
+
+const token = Astro.params.token ?? '';
+const ispravan = /^[A-Za-z0-9_-]{20,40}$/.test(token);
+let greska = '';
+
+if (Astro.request.method === 'POST' && ispravan) {
+  const { supabase } = Astro.locals;
+  const origin = Astro.request.headers.get('Origin');
+  if (origin && origin !== Astro.url.origin) {
+    greska = 'Zahtjev nije dopušten.';
+  } else {
+    let user = Astro.locals.user;
+    if (!user) {
+      // TODO (CAPTCHA): kad se u Supabaseu uključi Turnstile, ovdje proslijediti options.captchaToken.
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) console.error('signInAnonymously', error.message);
+      user = data.user ?? null;
+    }
+    if (!user) {
+      greska = 'Trenutno ne ide. Pokušajte za minutu.';
+    } else {
+      const { data: id, error } = await supabase.rpc('preuzmi_cestitku', { p_uredi_token: token });
+      if (error) console.error('preuzmi_cestitku', error.message);
+      if (typeof id === 'string' && id) return Astro.redirect(`/napravi/gotovo/${id}`, 303);
+      greska = 'Ovaj link ne vrijedi. Možda je čestitka istekla i obrisana.';
+    }
+  }
+}
+---
+
+<Base title="Vrati čestitku na ovaj uređaj" noindex>
+  <div class="g">
+    <h1>Vrati čestitku na ovaj uređaj</h1>
+    {
+      ispravan ? (
+        <>
+          <p class="p-muted">
+            Na ovom uređaju moći ćete uređivati čestitku i koristiti preostale čestitke iz paketa. Na uređaju na kojem ste
+            je dosad uređivali to više neće ići. Link za primatelja ostaje isti.
+          </p>
+          {greska && <p class="u-greska">{greska}</p>}
+          <form method="post" class="g-gumbi">
+            <button type="submit" class="p-btn">
+              Vrati čestitku
+            </button>
+          </form>
+        </>
+      ) : (
+        <p class="p-muted">Ovaj link nije ispravan. Provjerite jeste li ga kopirali cijelog.</p>
+      )
+    }
+  </div>
+</Base>

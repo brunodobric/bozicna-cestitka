@@ -44,6 +44,9 @@ npm run build
 - **Uređivač** `src/pages/napravi/index.astro` + `src/scripts/uredivac.ts` + `src/styles/uredivac.css`: dizajn, tekst (granica poruke po dizajnu), melodija s gumbom "poslušaj", jedna fotografija (smanjuje se u pregledniku na 1600 px JPEG). Pregled uživo crta isti `scripts/cestitka.ts`. Pravila polja su u `src/lib/uredivac.ts` (isti `provjeri()` koristi server).
 - `src/pages/napravi/spremi.ts`: POST iz uređivača. Prvo spremanje tiho prijavi kupca anonimno (`signInAnonymously`, kolačić httpOnly), pa insert ili update čestitke (RLS), upload fotografije u `cestitke-slike` (`src/lib/slike.ts`, tip po bajtovima), stara fotografija se briše. `/napravi?id=<uuid>` ponovno otvara čestitku na istom uređaju.
 - `src/pages/napravi/pregled/[id].astro`: kupčev pregled s kuvertom i glazbom prije plaćanja (samo vlasnik, kuverta svaki put).
+- **Plaćanje** (Stripe Checkout bez biblioteke, `src/lib/placanje.ts`): ponude u `src/lib/cijena.ts` (jedna 2,99 €, paket od 5 za 9,99 €, paket od 10 za 14,99 €, ista cijena s fotografijom i bez). Pregled → `/napravi/placanje/[id]` (odabir ponude ili "Iskoristi jednu iz paketa") → POST `/napravi/plati` → Stripe → `/napravi/gotovo/[id]` (provjeri sesiju kod Stripea, link za primatelja, Kopiraj, Pošalji, tajni link). Webhook `/stripe/webhook`. Paket: prva čestitka se otključa odmah, ostatak je u tablici `paketi` na kupčevom anonimnom računu. Testni ključ radi samo uz `PLACANJE_TESTNO=da`.
+- `src/pages/uredi/[token].astro`: tajni link vraća čestitku i ostatak paketa na drugi uređaj (tek na gumb, zbog robota za pregled poveznica).
+- **Brisanje:** čestitka vrijedi 30 dana od plaćanja (`brisanje_nakon`, Bruno 22. 11. 2026.). Cron u `src/worker.ts` (`wrangler.jsonc` triggers, 3:15 UTC) zove `ocisti_istekle` i briše fotografije bez čestitke (`src/lib/ciscenje.ts`). Neplaćene čestitke nedirnute 30 dana također se brišu.
 - `src/middleware.ts`: Supabase klijent po zahtjevu, CSP, `noindex` i `no-store` na `/c/`, `/napravi`, `/uredi`.
 
 ## Baza
@@ -54,6 +57,7 @@ npm run build
 - `002_devet_dizajna.sql` proširuje popis dopuštenih tema na devet. **Bruno je mora pokrenuti u SQL Editoru prije nego uređivač počne spremati nove dizajne** (primjeri rade i bez nje).
 - `003_duljina_poruke.sql` ograničava poruku na 320 znakova; pojedini dizajn traži manje (`najvisePoruka` u `teme.ts`, 180 do 320) i to mora provjeravati uređivač. I nju Bruno pokreće ručno.
 - `004_melodija.sql` dodaje stupac `melodija` i ponovno stvara `javna_cestitka` (vraća i melodiju). Bruno je pokreće ručno; dok ne pokrene, čestitke kupaca rade bez glazbe.
+- `005_placanje_i_brisanje.sql`: rok 30 dana u `potvrdi_uplatu_cestitke` (novi parametar `p_komada`), tablica `paketi`, `iskoristi_paket`, `preuzmi_cestitku` s paketom, `ocisti_istekle` i Storage pravila za brisanje fotografija bez čestitke. Na kraju ispiše `placanje_secret` za Cloudflare. Provjerena na lokalnom Postgresu 16; Bruno je pokreće ručno.
 - `001_cestitke.sql` je provjerena na lokalnom Postgresu 16 sa zamjenskim auth/storage shemama (plaćanje, krivi ključ, RLS između kupaca, prvo otvaranje, prijenos tajnim linkom, istek).
 
 ## Dizajn i provjera
@@ -65,7 +69,7 @@ npm run build
 ## Okruženja
 
 - **Supabase:** projekt `bozicna-cestitka` (ref `ofnvwzpvyjztbllhuewy`, Frankfurt) u zasebnoj besplatnoj organizaciji na računu info@digitalnipartner.hr; Bruno je u njoj Developer. Claudeov Supabase konektor taj projekt ne vidi, pa Bruno migracije pokreće ručno u SQL Editoru. `001_cestitke.sql` pokrenuta 21. 11. 2026., anonimna prijava uključena.
-- **Cloudflare:** Worker `bozicna-cestitka`, Workers Builds s repozitorija `brunodobric/bozicna-cestitka` (grana `main`), adresa https://bozicna-cestitka.bruno-dobric32.workers.dev. Varijable `SUPABASE_URL` i `SUPABASE_ANON_KEY` upisane. Node za build je u `.node-version` (Astro 7.4 traži najmanje 22.23.4).
+- **Cloudflare:** Worker `bozicna-cestitka`, Workers Builds s repozitorija `brunodobric/bozicna-cestitka` (grana `main`), adresa https://bozicna-cestitka.bruno-dobric32.workers.dev. Varijable `SUPABASE_URL` i `SUPABASE_ANON_KEY` upisane; za plaćanje trebaju `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PLACANJE_SECRET` i za probu `PLACANJE_TESTNO=da`. Node za build je u `.node-version` (Astro 7.4 traži najmanje 22.23.4).
 
 ## Stanje
 
@@ -77,4 +81,7 @@ Gotovo (22. 11. 2026.): fotografija kupca kao druga kartica iza čestitke. Uređ
 
 Gotovo (22. 11. 2026.): uređivač (korak 5): `/napravi`, spremanje s anonimnom prijavom, fotografija, pregled s kuvertom. Lokalno provjeren s lažnim Supabaseom; na pravom još nije isproban. **Treba migracije 002, 003 i 004** (insert šalje stupac `melodija`).
 
-**Otvoreno / čeka Brunu:** migracije `002_devet_dizajna.sql`, `003_duljina_poruke.sql` i `004_melodija.sql`, proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, `placanje_secret` (korak 7), odluke iz odjeljka 9 (cijena, trajanje čestitke, ime i domena, obavijest kupcu), proba na pravom iPhoneu i Androidu.
+Gotovo (22. 11. 2026.): migracije 002, 003 i 004 pokrenute; uređivač spojen.
+Gotovo (22. 11. 2026.): plaćanje preko Stripea (jedna, paket 5, paket 10), rok 30 dana, dnevno brisanje, tajni link za drugi uređaj. Lokalno provjereno s lažnim Supabaseom; Stripe nije isproban.
+
+**Otvoreno / čeka Brunu:** migracija `005_placanje_i_brisanje.sql`, Stripe varijable u Cloudflareu i webhook, mail kupcu s linkovima (Resend, čeka ime i domenu), proba zvuka na iPhoneu (prekidač za tihi način gasi zvuk), CAPTCHA (Turnstile) u Supabase Authu, odluke iz odjeljka 9 (ime i domena, obavijest kupcu), fiskalizacija, proba na pravom iPhoneu i Androidu.

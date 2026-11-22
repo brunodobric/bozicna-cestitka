@@ -1,0 +1,148 @@
+---
+// Nakon plaćanja: link za primatelja s gumbima "Kopiraj" i "Pošalji". Stripe vraća kupca ovdje sa session_id;
+// sesiju provjeravamo kod Stripea i odmah otključavamo čestitku (webhook radi isto, nije važno što stigne prvo).
+// Stranica radi samo na uređaju na kojem je čestitka napravljena (RLS: samo vlasnik).
+import Base from '../../../layouts/Base.astro';
+import { potvrdiPovratak } from '../../../lib/placanje';
+import '../../../styles/uredivac.css';
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const id = Astro.params.id ?? '';
+const { supabase, user } = Astro.locals;
+if (!UUID.test(id) || !user) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
+
+const sessionId = Astro.url.searchParams.get('session_id') ?? '';
+let greska = false;
+if (sessionId) {
+  try {
+    await potvrdiPovratak(supabase, user, id, sessionId);
+  } catch (e) {
+    console.error('placanje gotovo', e);
+    greska = true;
+  }
+}
+
+const { data: c } = await supabase.from('cestitke').select('id, token, uredi_token, placeno, brisanje_nakon, za').eq('id', id).maybeSingle();
+if (!c) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
+
+const { data: paket } = await supabase.from('paketi').select('preostalo').maybeSingle();
+const izPaketa = paket?.preostalo ?? 0;
+const link = `${Astro.url.origin}/c/${c.token}`;
+const tajniLink = `${Astro.url.origin}/uredi/${c.uredi_token}`;
+const datum = (d: string | null) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d ?? '');
+  return m ? `${Number(m[3])}. ${Number(m[2])}. ${m[1]}.` : '';
+};
+const vrijediDo = datum(c.brisanje_nakon);
+---
+
+<Base title={c.placeno ? 'Čestitka je spremna' : 'Uplata se obrađuje'} noindex>
+  <div class="g">
+    {
+      c.placeno ? (
+        <>
+          <h1>Čestitka je spremna</h1>
+          <p class="p-muted">
+            Pošaljite ovaj link primatelju. Kad ga otvori, vidjet će kuvertu.
+            {vrijediDo && ` Čestitka se može otvoriti do ${vrijediDo}`}
+          </p>
+          <div class="g-link">
+            <input id="link" type="text" readonly value={link} aria-label="Link za primatelja" />
+          </div>
+          <div class="g-gumbi">
+            <button type="button" class="p-btn" id="kopiraj">
+              Kopiraj link
+            </button>
+            <button type="button" class="p-btn p-btn--ghost" id="posalji" hidden>
+              Pošalji
+            </button>
+          </div>
+          <p class="g-stanje" id="g-stanje" role="status" aria-live="polite" />
+          <p class="p-muted g-mala">
+            Čestitku i dalje možete mijenjati, a primatelj uvijek vidi zadnju verziju.
+          </p>
+          <div class="g-tajni">
+            <h2>Spremite i ovaj link, samo za sebe</h2>
+            <p class="p-muted">
+              Čestitka je spremljena u ovom pregledniku. Ako obrišete podatke preglednika ili prijeđete na drugi mobitel, ovaj
+              link vraća čestitku{izPaketa > 0 ? ' i ostatak paketa' : ''}. Nemojte ga slati primatelju.
+            </p>
+            <input id="tajni-link" type="text" readonly value={tajniLink} aria-label="Tajni link za uređivanje" />
+            <button type="button" class="p-btn p-btn--ghost" id="kopiraj-tajni">
+              Kopiraj tajni link
+            </button>
+          </div>
+          <div class="g-gumbi">
+            <a class="p-btn p-btn--ghost" href={link} target="_blank" rel="noopener">
+              Otvori kao primatelj
+            </a>
+            <a class="p-btn p-btn--ghost" href={`/napravi?id=${c.id}`}>
+              Uredi čestitku
+            </a>
+          </div>
+          {izPaketa > 0 && (
+            <div class="g-paket">
+              <p>
+                Iz paketa vam je ostalo još <strong>{izPaketa}</strong>. Napravite sljedeću čestitku na ovom uređaju i
+                otključajte je bez plaćanja.
+              </p>
+              <a class="p-btn" href="/napravi">
+                Napravi sljedeću
+              </a>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <h1>Uplata se još obrađuje</h1>
+          <p class="p-muted">
+            {greska
+              ? 'Nismo uspjeli odmah provjeriti uplatu. Ako je novac skinut s kartice, čestitka se otključa sama za minutu ili dvije.'
+              : 'Ako ste platili, čestitka se otključa sama za minutu ili dvije. Stranica se osvježava sama.'}
+          </p>
+          <p>
+            <a class="p-btn p-btn--ghost" href={`/napravi/pregled/${c.id}`}>
+              Natrag na pregled
+            </a>
+          </p>
+          <script is:inline>setTimeout(() => location.replace(location.pathname), 8000);</script>
+        </>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  const input = document.getElementById('link') as HTMLInputElement | null;
+  const stanje = document.getElementById('g-stanje');
+  const kopiraj = document.getElementById('kopiraj');
+  const posalji = document.getElementById('posalji');
+  const link = input?.value ?? '';
+
+  kopiraj?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      if (stanje) stanje.textContent = 'Link je kopiran.';
+    } catch {
+      input?.select();
+      if (stanje) stanje.textContent = 'Link je označen, kopirajte ga ručno.';
+    }
+  });
+
+  const tajni = document.getElementById('tajni-link') as HTMLInputElement | null;
+  document.getElementById('kopiraj-tajni')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(tajni?.value ?? '');
+      if (stanje) stanje.textContent = 'Tajni link je kopiran. Spremite ga u bilješke ili pošaljite sebi.';
+    } catch {
+      tajni?.select();
+    }
+  });
+
+  if (posalji && link && typeof navigator.share === 'function') {
+    posalji.hidden = false;
+    posalji.addEventListener('click', () => {
+      navigator.share({ title: 'Božićna čestitka', text: 'Stigla ti je božićna čestitka.', url: link }).catch(() => {});
+    });
+  }
+</script>

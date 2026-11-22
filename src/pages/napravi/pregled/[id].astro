@@ -7,6 +7,7 @@ import Karta from '../../../components/Karta.astro';
 import Glazba from '../../../components/Glazba.astro';
 import { javniUrlSlike } from '../../../lib/cestitka';
 import { tema as temaInfo } from '../../../lib/teme';
+import { placanjeDostupno } from '../../../lib/placanje';
 
 const id = Astro.params.id ?? '';
 const ok = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id);
@@ -14,11 +15,36 @@ const { data: c } = ok && Astro.locals.user ? await Astro.locals.supabase.from('
 if (!c) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
 const info = temaInfo(c.tema);
 const slika = javniUrlSlike(Astro.locals.supabaseUrl, c.slika);
+const { data: paket } = await Astro.locals.supabase.from('paketi').select('preostalo').maybeSingle();
+const izPaketa = paket?.preostalo ?? 0;
+const moguPlatiti = !c.placeno && !!c.poruka?.trim() && (izPaketa > 0 || placanjeDostupno());
+const greska = Astro.url.searchParams.get('placanje') === 'greska';
+const napomena = c.placeno
+  ? 'Čestitka je plaćena. Link za primatelja je pod „Link za slanje”.'
+  : greska
+    ? 'Plaćanje nije uspjelo. Pokušajte ponovno za minutu.'
+    : moguPlatiti
+      ? 'Ovako će čestitku vidjeti primatelj. Nakon plaćanja dobivate link za slanje.'
+      : 'Ovako će čestitku vidjeti primatelj. Plaćanje još nije uključeno.';
 ---
 
 <CestitkaLayout tema={info.key} envelope="" title="Pregled čestitke">
   <Envelope storageKey="" za={c.za} pecat={info.pecat} deco={info.deco} />
-  <Karta tema={info.key} naslov={c.naslov} poruka={c.poruka} od={c.od} slika={slika} primjer natrag={{ href: `/napravi?id=${c.id}`, tekst: 'Natrag na uređivanje' }} />
+  <Karta tema={info.key} naslov={c.naslov} poruka={c.poruka} od={c.od} slika={slika} primjer natrag={{ href: `/napravi?id=${c.id}`, tekst: 'Natrag na uređivanje' }}>
+    {
+      c.placeno ? (
+        <a slot="radnje" class="gumb" href={`/napravi/gotovo/${c.id}`}>
+          Link za slanje
+        </a>
+      ) : (
+        moguPlatiti && (
+          <a slot="radnje" class="gumb" href={`/napravi/placanje/${c.id}`}>
+            {izPaketa > 0 ? 'Pošalji čestitku' : 'Plati i dobij link'}
+          </a>
+        )
+      )
+    }
+  </Karta>
   <Glazba melodija={c.melodija ?? null} />
-  <p class="pregled-napomena">Ovako će čestitku vidjeti primatelj. Plaćanje i slanje linka dolaze u sljedećem koraku.</p>
+  <p class="pregled-napomena">{napomena}</p>
 </CestitkaLayout>
