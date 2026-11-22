@@ -1,4 +1,4 @@
-// Ime proizvoda i adresa stranice. Ime je RADNO dok Bruno ne odluči ime i domenu (odjeljak 9 plana).
+// Ime proizvoda i adresa stranice. Domena je bozicna.kuverta.hr (Bruno, 22. 11. 2026.), u Cloudflareu kao SITE_URL; ime je još radno.
 import { env } from 'cloudflare:workers';
 
 export const SITE_NAME = 'Božićna čestitka';
