@@ -346,3 +346,52 @@ a.gumb {
   text-align: center;
   margin: 0;
 }
+
+/* Gumb za glazbu (Glazba.astro): okrugao, u gornjem desnom kutu, skriven dok je kuverta na ekranu. */
+.glazba {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  right: calc(env(safe-area-inset-right, 0px) + 12px);
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--na-pozadini) 45%, transparent);
+  background: color-mix(in srgb, var(--gumb-bg) 85%, transparent);
+  color: var(--gumb-tekst);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  transition: opacity 0.3s ease;
+}
+html.env .glazba {
+  opacity: 0;
+  pointer-events: none;
+}
+.glazba:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.glazba svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.glazba__zvucnik {
+  fill: currentColor;
+}
+.glazba__val {
+  display: none;
+}
+.glazba.is-svira .glazba__val {
+  display: inline;
+}
+.glazba.is-svira .glazba__kriz {
+  display: none;
+}

@@ -8,3 +8,7 @@
 # Pomoćna adresa Workera ne ide u tražilice (za statične datoteke; stranice to rješava middleware).
 https://:worker.:account.workers.dev/*
   X-Robots-Tag: noindex
+
+# Isječci glazbe se ne mijenjaju često; nova verzija dobiva novo ime.
+/glazba/*
+  Cache-Control: public, max-age=604800

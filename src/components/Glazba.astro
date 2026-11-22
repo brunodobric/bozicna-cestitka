@@ -1,0 +1,82 @@
+---
+// Melodija čestitke (lib/melodije.ts). Preglednici ne puštaju zvuk prije nego što posjetitelj nešto dodirne,
+// pa melodija krene na dodir kuverte. Ako je kuverta već otvorena na ovom uređaju (nema je), glazba čeka
+// gumb. Gumb u kutu glazbu gasi i pali; skriven je dok je kuverta na ekranu.
+import { datotekaMelodije, melodija as nadjiMelodiju } from '../lib/melodije';
+
+interface Props {
+  melodija: string | null;
+}
+const m = nadjiMelodiju(Astro.props.melodija);
+---
+
+{
+  m && (
+    <>
+      <audio id="glazba" src={datotekaMelodije(m.key)} preload="auto" />
+      <button type="button" class="glazba" id="glazba-gumb" aria-pressed="false" aria-label={`Pusti glazbu: ${m.naziv}`} data-naziv={m.naziv}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path class="glazba__zvucnik" d="M4 9h4l5-4v14l-5-4H4z" />
+          <path class="glazba__val" d="M16 9.5a3.5 3.5 0 0 1 0 5M18.5 7a7 7 0 0 1 0 10" />
+          <path class="glazba__kriz" d="M16.5 9.5l5 5M21.5 9.5l-5 5" />
+        </svg>
+      </button>
+    </>
+  )
+}
+
+<script>
+  const audio = document.getElementById('glazba') as HTMLAudioElement | null;
+  const gumb = document.getElementById('glazba-gumb') as HTMLButtonElement | null;
+
+  if (audio && gumb) {
+    const naziv = gumb.dataset.naziv ?? '';
+    let pokrenuto = false;
+    let fade = 0;
+
+    const stanje = () => {
+      const svira = !audio.paused && !audio.ended;
+      gumb.classList.toggle('is-svira', svira);
+      gumb.setAttribute('aria-pressed', String(svira));
+      gumb.setAttribute('aria-label', svira ? `Isključi glazbu: ${naziv}` : `Pusti glazbu: ${naziv}`);
+    };
+
+    // Lagano pojačavanje na početku (iPhone ne dopušta mijenjati glasnoću, pa tamo odmah svira punom).
+    const pusti = () => {
+      pokrenuto = true;
+      cancelAnimationFrame(fade);
+      if (audio.ended) audio.currentTime = 0;
+      audio.volume = 0;
+      const start = performance.now();
+      const korak = (t: number) => {
+        audio.volume = Math.min(1, (t - start) / 1200);
+        if (audio.volume < 1) fade = requestAnimationFrame(korak);
+      };
+      audio.play().then(() => (fade = requestAnimationFrame(korak)), (e) => console.warn('glazba', e));
+    };
+
+    // Dodir kuverte (otvaranje ili Preskoči) je dopuštenje za zvuk; slušamo ga prije skripte kuverte.
+    const kuverta = document.getElementById('kuverta');
+    kuverta?.addEventListener(
+      'click',
+      () => {
+        if (!pokrenuto) pusti();
+      },
+      { capture: true, once: true },
+    );
+
+    gumb.addEventListener('click', () => {
+      if (audio.paused || audio.ended) pusti();
+      else audio.pause();
+    });
+
+    audio.addEventListener('play', stanje);
+    audio.addEventListener('pause', stanje);
+    audio.addEventListener('ended', stanje);
+    // Kad posjetitelj ode u drugu aplikaciju ili karticu, glazba stane i ne kreće sama.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) audio.pause();
+    });
+    stanje();
+  }
+</script>
