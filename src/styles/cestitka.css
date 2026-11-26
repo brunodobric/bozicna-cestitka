@@ -118,11 +118,25 @@ body.inv {
 .inv-env.is-open .inv-env__card {
   transform: translateY(-58%);
 }
-/* dok čestitka izlazi, kuverta se malo spusti da čestitka ne ode iznad ekrana */
+/* dok čestitka izlazi, kuverta se malo spusti da čestitka ne ode iznad ekrana.
+   Lebdenje iz kuverta.css ide preko svojstva translate, ne transform: dok animacija drži transform,
+   preglednik ne pokrene prijelaz i kuverta na dodir skoči 120 px dolje. Na otvaranju se lebdenje
+   samo zaustavi (paused), da ne skoči ni tih 7 px. */
+@keyframes inv-env-lebdi {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -7px;
+  }
+}
 .inv-env__stage {
+  animation-name: inv-env-lebdi;
   transition: transform 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) 0.7s;
 }
 .inv-env.is-open .inv-env__stage {
+  animation: inv-env-lebdi 3.6s ease-in-out 1s infinite paused;
   transform: translateY(min(16svh, 120px));
 }
 .inv-env.is-zoom .inv-env__card {
