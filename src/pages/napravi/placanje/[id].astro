@@ -5,6 +5,7 @@
 // Bez STRIPE_PUBLISHABLE_KEY ili kad se polja ne učitaju, plaća se na Stripeovoj stranici (POST /napravi/plati).
 import Base from '../../../layouts/Base.astro';
 import { otvoriUgradenuNaplatu, placanjeDostupno, stripeJavniKljuc, testnoPlacanje } from '../../../lib/placanje';
+import { metaPodaciZaSesiju } from '../../../lib/metaKonverzije';
 import { PONUDE, iznos, nazivPonude, ponuda as nadiPonudu } from '../../../lib/cijena';
 import jakartaLatin from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url';
 import jakartaExt from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-wght-normal.woff2?url';
@@ -32,7 +33,7 @@ const bezOdricanja = Astro.url.searchParams.get('odricanje') === 'nedostaje';
 let clientSecret = '';
 if (odabrana) {
   try {
-    clientSecret = await otvoriUgradenuNaplatu(user, id, odabrana, Astro.url.origin);
+    clientSecret = await otvoriUgradenuNaplatu(user, id, odabrana, Astro.url.origin, metaPodaciZaSesiju(Astro.request));
   } catch (e) {
     console.error('placanje stranica', e);
     return Astro.redirect(`/napravi/pregled/${id}?placanje=greska`);

@@ -13,6 +13,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { ponudaZaKomada, type Ponuda } from "./cijena";
 import { posaljiMailKupcu } from "./mail";
 import { izdajRacun, stornirajRacun } from "./fiskalizacija";
+import { javiKupnjuMeti } from "./metaKonverzije";
 
 const read = (name: string) => {
   const v = (env as unknown as Record<string, unknown>)[name];
@@ -67,6 +68,7 @@ function osnovaSesije(
   user: User,
   cestitkaId: string,
   p: Ponuda,
+  meta: Record<string, string>,
 ): URLSearchParams {
   const b = new URLSearchParams();
   b.set("mode", "payment");
@@ -85,6 +87,8 @@ function osnovaSesije(
   b.set("metadata[owner_id]", user.id);
   b.set("metadata[komada]", String(p.komada));
   b.set("payment_intent_data[metadata][cestitka_id]", cestitkaId);
+  // Meta Conversions API (lib/metaKonverzije.ts): samo uz pristanak na kolačiće.
+  for (const [k, v] of Object.entries(meta)) b.set(`metadata[${k}]`, v);
   // Sesija vrijedi sat vremena (Stripe inače drži 24 sata).
   b.set("expires_at", String(Math.floor(Date.now() / 1000) + 60 * 60));
   return b;
@@ -99,8 +103,9 @@ export async function otvoriNaplatu(
   cestitkaId: string,
   p: Ponuda,
   origin: string,
+  meta: Record<string, string> = {},
 ): Promise<string> {
-  const b = osnovaSesije(user, cestitkaId, p);
+  const b = osnovaSesije(user, cestitkaId, p, meta);
   b.set("locale", "hr");
   b.set("success_url", adresaGotovo(origin, cestitkaId));
   b.set("cancel_url", `${origin}/napravi/placanje/${cestitkaId}`);
@@ -117,8 +122,9 @@ export async function otvoriUgradenuNaplatu(
   cestitkaId: string,
   p: Ponuda,
   origin: string,
+  meta: Record<string, string> = {},
 ): Promise<string> {
-  const b = osnovaSesije(user, cestitkaId, p);
+  const b = osnovaSesije(user, cestitkaId, p, meta);
   b.set("ui_mode", "elements");
   b.set("return_url", adresaGotovo(origin, cestitkaId));
   const s = await stripe("checkout/sessions", b);
@@ -195,6 +201,8 @@ async function nakonUplate(supabase: SupabaseClient, s: Session, origin: string,
     return;
   }
   await posaljiMailKupcu(supabase, s.id, origin, racun === "izdan");
+  // Kupnja Meti sa servera samo iz webhooka (povratak bi je poslao drugi put; Meta bi je ionako spojila po event_id).
+  if (izWebhooka) await javiKupnjuMeti(s, origin);
 }
 
 // Povratak s naplate: sesiju provjeravamo izravno kod Stripea, pa kupac ne čeka webhook.
