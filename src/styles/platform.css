@@ -283,3 +283,66 @@ p {
 .pravno a {
   color: var(--p-primary);
 }
+
+/* ---------- kolačići (samo uz Meta piksel, components/Kolacici.astro) ---------- */
+.kolacici {
+  position: fixed;
+  z-index: 2000;
+  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 1rem 1.125rem;
+  background: var(--p-surface);
+  color: var(--p-text);
+  border: 1px solid var(--p-gold);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(20, 54, 39, 0.22);
+  font: 400 0.875rem/1.5 var(--p-font-body);
+}
+.kolacici[hidden] {
+  display: none;
+}
+.kolacici__naslov {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  color: var(--p-green);
+}
+.kolacici__tekst {
+  margin: 0 0 0.75rem;
+}
+.kolacici__tekst a {
+  color: inherit;
+}
+.kolacici__gumbi {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.kolacici__gumb {
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--p-green);
+  background: transparent;
+  color: var(--p-green);
+  font: 600 0.9375rem/1 var(--p-font-body);
+  cursor: pointer;
+}
+.kolacici__gumb:hover {
+  background: #efe7d6;
+}
+.kolacici__gumb:focus-visible {
+  outline: 2px solid var(--p-primary);
+  outline-offset: 2px;
+}
+.p-footer__kolacici {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

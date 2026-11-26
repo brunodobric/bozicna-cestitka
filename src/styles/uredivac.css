@@ -531,3 +531,24 @@
 .pl-pristanak a {
   color: inherit;
 }
+/* Kvačica o odustanku od kupnje (izričit pristanak prije plaćanja). */
+.pl-odricanje {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 1rem 0 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--p-text);
+  cursor: pointer;
+}
+.pl-odricanje input {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.05rem 0 0;
+  accent-color: var(--p-primary);
+}
+.pl-odricanje a {
+  color: inherit;
+}

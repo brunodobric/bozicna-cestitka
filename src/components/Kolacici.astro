@@ -1,0 +1,128 @@
+---
+// Obavijest o kolačićima i Meta piksel. Prikazuje se samo kad je upisan META_PIXEL_ID (inače stranica ima samo nužne kolačiće).
+// Piksel se učitava tek nakon "Prihvaćam"; izbor se pamti u pregledniku, a link "Kolačići" u podnožju ga ponovno otvara.
+// Stranica može predati jedan događaj (InitiateCheckout na plaćanju, Purchase nakon uplate).
+import { metaPiksel, type PikselDogadaj } from '../lib/piksel';
+
+interface Props {
+  dogadaj?: PikselDogadaj | null;
+}
+const id = metaPiksel();
+const dogadaj = Astro.props.dogadaj ? JSON.stringify(Astro.props.dogadaj) : undefined;
+---
+
+{
+  id && (
+    <div id="kolacici" class="kolacici" role="dialog" aria-labelledby="kolacici-naslov" data-piksel={id} data-dogadaj={dogadaj} hidden>
+      <p id="kolacici-naslov" class="kolacici__naslov">Kolačići</p>
+      <p class="kolacici__tekst">
+        Nužni kolačići čuvaju vašu čestitku na ovom uređaju. Uz vaš pristanak koristimo i Metin piksel, da bismo znali koji su oglasi na
+        Facebooku i Instagramu doveli do kupnje. Više u <a href="/privatnost#kolacici">pravilima privatnosti</a>.
+      </p>
+      <div class="kolacici__gumbi">
+        <button type="button" class="kolacici__gumb" data-kolacici="ne">
+          Samo nužni
+        </button>
+        <button type="button" class="kolacici__gumb" data-kolacici="da">
+          Prihvaćam
+        </button>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  type Dogadaj = { ime: string; value: number; currency: string; id?: string };
+  type Fbq = ((...a: unknown[]) => void) & { callMethod?: (...a: unknown[]) => void; queue: unknown[][]; push: unknown; loaded: boolean; version: string };
+
+  const okvir = document.getElementById('kolacici');
+  if (okvir) {
+    const KLJUC = 'kolacici-pristanak';
+    const pikselId = okvir.dataset.piksel ?? '';
+    const dogadaj = okvir.dataset.dogadaj ? (JSON.parse(okvir.dataset.dogadaj) as Dogadaj) : null;
+    const procitaj = (k: string) => {
+      try {
+        return localStorage.getItem(k);
+      } catch {
+        return null;
+      }
+    };
+    const zapisi = (k: string, v: string) => {
+      try {
+        localStorage.setItem(k, v);
+      } catch {
+        /* privatni način: izbor vrijedi do zatvaranja stranice */
+      }
+    };
+    const pokazi = (da: boolean) => {
+      okvir.hidden = !da;
+    };
+
+    let ucitan = false;
+    const ucitajPiksel = () => {
+      if (ucitan || !pikselId) return;
+      ucitan = true;
+      // Metin standardni kod za piksel, bez <noscript> slike (bez skripte nema ni pristanka).
+      const w = window as unknown as { fbq?: Fbq; _fbq?: Fbq };
+      if (!w.fbq) {
+        const f = function (...a: unknown[]) {
+          if (f.callMethod) f.callMethod(...a);
+          else f.queue.push(a);
+        } as Fbq;
+        f.push = f;
+        f.loaded = true;
+        f.version = '2.0';
+        f.queue = [];
+        w.fbq = f;
+        w._fbq = f;
+        const s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://connect.facebook.net/en_US/fbevents.js';
+        document.head.appendChild(s);
+      }
+      const fbq = w.fbq!;
+      fbq('init', pikselId);
+      fbq('track', 'PageView');
+      if (dogadaj) {
+        const podaci = { value: dogadaj.value, currency: dogadaj.currency };
+        if (dogadaj.id) {
+          // Ista kupnja se ne šalje dvaput (osvježavanje stranice s linkom); eventID pomaže Meti da spoji duplikate.
+          const oznaka = `piksel-kupnja:${dogadaj.id}`;
+          if (procitaj(oznaka)) return;
+          zapisi(oznaka, '1');
+          fbq('track', dogadaj.ime, podaci, { eventID: dogadaj.id });
+        } else {
+          fbq('track', dogadaj.ime, podaci);
+        }
+      }
+    };
+
+    // Povlačenje pristanka: brišemo Metin kolačić i učitavamo stranicu bez piksela.
+    const ugasiPiksel = () => {
+      const domena = location.hostname.split('.').slice(-2).join('.');
+      for (const ime of ['_fbp', '_fbc']) {
+        document.cookie = `${ime}=; Max-Age=0; path=/`;
+        document.cookie = `${ime}=; Max-Age=0; path=/; domain=.${domena}`;
+      }
+      if (ucitan) location.reload();
+    };
+
+    const izbor = procitaj(KLJUC);
+    if (izbor === 'da') ucitajPiksel();
+    else if (izbor !== 'ne') pokazi(true);
+
+    okvir.addEventListener('click', (e) => {
+      const gumb = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-kolacici]');
+      if (!gumb) return;
+      const da = gumb.dataset.kolacici === 'da';
+      zapisi(KLJUC, da ? 'da' : 'ne');
+      pokazi(false);
+      if (da) ucitajPiksel();
+      else ugasiPiksel();
+    });
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-kolacici-postavke]')) {
+      b.hidden = false;
+      b.addEventListener('click', () => pokazi(true));
+    }
+  }
+</script>
