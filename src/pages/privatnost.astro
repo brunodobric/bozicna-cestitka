@@ -2,12 +2,16 @@
 // Pravila privatnosti. Podaci o obrtu su isti kao na kuverta.hr/privatnost.
 // Kad se promijeni obrada (novi dobavljač, rok brisanja, kolačić), promijeni i ovaj tekst i datum.
 import Base from '../layouts/Base.astro';
+import { metaPiksel } from '../lib/piksel';
+
+// Tekst o Metinom pikselu vrijedi samo kad je piksel uključen (META_PIXEL_ID).
+const piksel = metaPiksel() !== '';
 ---
 
 <Base title="Pravila privatnosti | Božićna čestitka" description="Koje podatke prikupljamo kad napravite ili otvorite božićnu čestitku, tko ih obrađuje i kada se brišu.">
   <article class="pravno">
     <h1>Pravila privatnosti</h1>
-    <p class="p-muted p-small">Zadnje ažurirano: 22. studenoga 2026.</p>
+    <p class="p-muted p-small">Zadnje ažurirano: {piksel ? '26. studenoga 2026.' : '22. studenoga 2026.'}</p>
 
     <p>
       Ovdje piše koje podatke obrađujemo kad napravite čestitku na bozicna.kuverta.hr ili otvorite čestitku koju vam je netko poslao,
@@ -60,10 +64,21 @@ import Base from '../layouts/Base.astro';
         (f)).
       </li>
     </ul>
-    <p>
-      Podatke ne prodajemo, ne koristimo ih za oglašavanje i ne radimo profile korisnika. Na stranici nema analitike, oglasnih piksela ni
-      kolačića za praćenje.
-    </p>
+    {
+      piksel ? (
+        <p>
+          Podatke ne prodajemo i ne radimo profile korisnika. Samo ako prihvatite kolačiće, Metin piksel bilježi posjete stranicama i
+          kupnju, da bismo znali koji su oglasi na Facebooku i Instagramu doveli do kupnje: na temelju vašeg pristanka (članak 6. stavak 1.
+          točka (a)). Pristanak možete povući bilo kad linkom "Kolačići" na dnu stranice. Sadržaj čestitke, ime primatelja, fotografija i
+          e-mail Meti se ne šalju.
+        </p>
+      ) : (
+        <p>
+          Podatke ne prodajemo, ne koristimo ih za oglašavanje i ne radimo profile korisnika. Na stranici nema analitike, oglasnih piksela
+          ni kolačića za praćenje.
+        </p>
+      )
+    }
 
     <h2>4. Osobe na čestitci i fotografiji</h2>
     <p>
@@ -86,6 +101,15 @@ import Base from '../layouts/Base.astro';
         <strong>Stripe</strong> (Stripe Payments Europe, Limited, Irska) obrađuje plaćanje karticom. Za podatke o plaćanju i sprječavanje
         prijevara Stripe je samostalni voditelj obrade i primjenjuje svoja pravila privatnosti (stripe.com/privacy).
       </li>
+      {
+        piksel && (
+          <li>
+            <strong>Meta</strong> (Meta Platforms Ireland Limited, Irska), samo ako prihvatite kolačiće: piksel za mjerenje oglasa. Za
+            prikupljanje podataka pikselom Meta i mi smo zajednički voditelji obrade, a za daljnju obradu Meta primjenjuje svoja pravila
+            privatnosti (facebook.com/privacy/policy).
+          </li>
+        )
+      }
     </ul>
     <p>
       Neki od tih dobavljača su tvrtke iz SAD-a ili imaju podršku izvan Europskog gospodarskog prostora. Tada se prijenos temelji na odluci
@@ -119,8 +143,26 @@ import Base from '../layouts/Base.astro';
       <li>
         Na stranici za plaćanje Stripe postavlja svoje kolačiće za sigurnost plaćanja i sprječavanje prijevara.
       </li>
+      {
+        piksel && (
+          <li>
+            <strong>Metin piksel</strong> (kolačići <code>_fbp</code> i <code>_fbc</code>, do 90 dana) prepoznaje preglednik koji je došao s
+            oglasa i bilježi posjete i kupnju. Postavlja se tek kad kliknete "Prihvaćam". Vaš izbor pamti zapis u pregledniku
+            (<code>kolacici-pristanak</code>).
+          </li>
+        )
+      }
     </ul>
-    <p>Budući da koristimo samo nužne kolačiće, ne tražimo privolu za kolačiće.</p>
+    {
+      piksel ? (
+        <p>
+          Nužne kolačiće koristimo bez privole jer bez njih usluga ne radi. Za Metin piksel tražimo pristanak, a odbijanje ne mijenja ništa u
+          izradi i slanju čestitke. Izbor promijenite linkom "Kolačići" na dnu stranice.
+        </p>
+      ) : (
+        <p>Budući da koristimo samo nužne kolačiće, ne tražimo privolu za kolačiće.</p>
+      )
+    }
 
     <h2>8. Vaša prava</h2>
     <p>

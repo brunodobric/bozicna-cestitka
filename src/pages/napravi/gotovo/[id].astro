@@ -6,6 +6,7 @@ import Base from '../../../layouts/Base.astro';
 import { potvrdiPovratak } from '../../../lib/placanje';
 import { siteOrigin } from '../../../lib/seo';
 import { fiskalizacijaPostavljena } from '../../../lib/fiskalizacija';
+import type { PikselDogadaj } from '../../../lib/piksel';
 import '../../../styles/uredivac.css';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -33,6 +34,12 @@ const izPaketa = paket?.preostalo ?? 0;
 const { data: uplata } = fiskalizacijaPostavljena()
   ? await supabase.from('uplate').select('id').eq('cestitka_id', id).like('stripe_session_id', 'cs_%').limit(1).maybeSingle()
   : { data: null };
+// Meta piksel: kupnja se javlja samo pri povratku sa Stripea (session_id), s iznosom iz baze.
+let piksel: PikselDogadaj | null = null;
+if (c.placeno && sessionId.startsWith('cs_')) {
+  const { data: u } = await supabase.from('uplate').select('iznos_centi, valuta').eq('stripe_session_id', sessionId).maybeSingle();
+  if (u) piksel = { ime: 'Purchase' as const, value: u.iznos_centi / 100, currency: (u.valuta || 'eur').toUpperCase(), id: sessionId };
+}
 const link = `${Astro.url.origin}/c/${c.token}`;
 const tajniLink = `${Astro.url.origin}/uredi/${c.uredi_token}`;
 const datum = (d: string | null) => {
@@ -42,7 +49,7 @@ const datum = (d: string | null) => {
 const vrijediDo = datum(c.brisanje_nakon);
 ---
 
-<Base title={c.placeno ? 'Čestitka je spremna' : 'Uplata se obrađuje'} noindex>
+<Base title={c.placeno ? 'Čestitka je spremna' : 'Uplata se obrađuje'} noindex piksel={piksel}>
   <div class="g">
     {
       c.placeno ? (

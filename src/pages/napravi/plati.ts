@@ -28,6 +28,8 @@ export const POST: APIRoute = async ({ request, locals, url, redirect }) => {
 
   const p = nadiPonudu(f.get('ponuda'));
   if (!p || !placanjeDostupno()) return redirect(pregled, 303);
+  // Bez izričitog pristanka na isporuku odmah (kvačica o odustanku) ne otvaramo naplatu.
+  if (f.get('odricanje') !== 'da') return redirect(`/napravi/placanje/${id}?ponuda=${p.key}&odricanje=nedostaje`, 303);
   try {
     return redirect(await otvoriNaplatu(user, id, p, url.origin), 303);
   } catch (e) {

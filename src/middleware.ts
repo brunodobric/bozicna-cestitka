@@ -2,6 +2,7 @@ import { defineMiddleware } from "astro:middleware";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { env } from "cloudflare:workers";
 import { siteOrigin } from "./lib/seo";
+import { metaPiksel, PIKSEL_CSP } from "./lib/piksel";
 
 // Stara adresa na workers.dev. Kad je upisan SITE_URL (https://bozicna.kuverta.hr), posjeti se preusmjeravaju
 // na pravu domenu. Webhook ostaje na staroj adresi dok se u Stripeu ne promijeni, a pregledi grana
@@ -99,6 +100,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const res = new Response(response.body, response);
   // Stripeova polja za karticu (Stripe.js i njegovi okviri) samo na stranici plaćanja.
   const stripe = path.startsWith("/napravi/placanje/");
+  // Meta piksel (samo kad je upisan META_PIXEL_ID; učitava se tek nakon pristanka na kolačiće).
+  const fb = metaPiksel() !== "";
   const csp = [
     "default-src 'self'",
     "base-uri 'self'",
@@ -107,12 +110,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // Rezerva "Platite na Stripeovoj stranici" šalje obrazac nama, a mi preusmjerimo na Stripe.
     "form-action 'self' https://checkout.stripe.com",
     // Astro ubacuje male inline skripte; Turnstile učitava skriptu i okvir s Cloudflarea.
-    `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${stripe ? " https://js.stripe.com https://*.js.stripe.com" : ""}`,
+    `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${stripe ? " https://js.stripe.com https://*.js.stripe.com" : ""}${fb ? ` ${PIKSEL_CSP.script}` : ""}`,
     `frame-src https://challenges.cloudflare.com${stripe ? " https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com" : ""}`,
-    `connect-src 'self' https://challenges.cloudflare.com ${SUPABASE_URL}${stripe ? " https://api.stripe.com https://merchant-ui-api.stripe.com https://*.stripe.com" : ""}`,
+    `connect-src 'self' https://challenges.cloudflare.com ${SUPABASE_URL}${stripe ? " https://api.stripe.com https://merchant-ui-api.stripe.com https://*.stripe.com" : ""}${fb ? ` ${PIKSEL_CSP.connect}` : ""}`,
     "style-src 'self' 'unsafe-inline'",
     // blob: za sliku čestitke nacrtanu na canvas (Spremi kao sliku); Supabase za slike iz Storagea.
-    `img-src 'self' data: blob: ${SUPABASE_URL}${stripe ? " https://*.stripe.com" : ""}`,
+    `img-src 'self' data: blob: ${SUPABASE_URL}${stripe ? " https://*.stripe.com" : ""}${fb ? ` ${PIKSEL_CSP.img}` : ""}`,
   ].join("; ");
   res.headers.set("Content-Security-Policy", csp);
   res.headers.set("X-Content-Type-Options", "nosniff");

@@ -28,6 +28,7 @@ const javniKljuc = mozePlatiti ? stripeJavniKljuc() : '';
 
 // Drugi korak: odabrana ponuda i polja za karticu.
 const odabrana = mozePlatiti && javniKljuc ? nadiPonudu(Astro.url.searchParams.get('ponuda')) : null;
+const bezOdricanja = Astro.url.searchParams.get('odricanje') === 'nedostaje';
 let clientSecret = '';
 if (odabrana) {
   try {
@@ -50,13 +51,20 @@ const fontovi = ['400', '600'].flatMap((weight) =>
   ].map(([src, unicodeRange]) => ({ family: 'Plus Jakarta Sans', src: `url(${new URL(src, Astro.url.origin).href})`, weight, unicodeRange })),
 );
 const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
+// Izričit pristanak na isporuku odmah i gubitak prava na odustanak (Zakon o zaštiti potrošača): kupac mora sam označiti kvačicu.
+const tekstOdricanja = (komada: number) =>
+  `Tražim da mi čestitka bude dostupna odmah nakon plaćanja i znam da time gubim pravo na odustanak od kupnje u roku od 14 dana.${
+    komada > 1 ? ' To vrijedi i za ostale čestitke iz paketa.' : ''
+  }`;
+const piksel = odabrana ? { ime: 'InitiateCheckout' as const, value: odabrana.centi / 100, currency: 'EUR' } : null;
 ---
 
-<Base title="Plaćanje čestitke" noindex>
+<Base title="Plaćanje čestitke" noindex piksel={piksel}>
   {
     odabrana ? (
       <div class="g">
         <h1>Plaćanje</h1>
+        {bezOdricanja && <p class="u-greska" role="alert">Prije plaćanja označite kvačicu o odustanku od kupnje.</p>}
         <div class="pl-sazetak">
           <div>
             <span class="pl-sazetak__naziv">{nazivPonude(odabrana.komada)}</span>
@@ -81,8 +89,11 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
           </div>
           <p id="pl-poruka" class="u-greska" role="alert" hidden />
           {testnoPlacanje() && <p class="p-muted g-mala">Plaćanje je testno: kartica 4242 4242 4242 4242, bilo koji budući datum i CVC.</p>}
+          <label class="pl-odricanje">
+            <input id="pl-odricanje" type="checkbox" name="odricanje" value="da" required />
+            <span>{tekstOdricanja(odabrana.komada)}</span>
+          </label>
           <p class="pl-pristanak">
-            Plaćanjem tražite da čestitka bude dostupna odmah i potvrđujete da time gubite pravo na odustanak od kupnje u roku od 14 dana.
             Više u <a href="/uvjeti#odustanak">uvjetima korištenja</a> i <a href="/privatnost">pravilima privatnosti</a>.
           </p>
           <button type="submit" id="pl-gumb" class="p-btn pl-gumb" disabled>
@@ -90,8 +101,9 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
           </button>
         </form>
         <p class="pl-napomena">Plaćanje obrađuje Stripe. Podatke kartice ne spremamo.</p>
-        <form method="post" action="/napravi/plati" class="pl-zamjena">
+        <form method="post" action="/napravi/plati" class="pl-zamjena" id="pl-zamjena">
           <input type="hidden" name="id" value={c.id} />
+          <input type="hidden" name="odricanje" id="pl-zamjena-odricanje" value="" />
           <button type="submit" name="ponuda" value={odabrana.key}>
             Obrazac se ne učitava? Platite na Stripeovoj stranici
           </button>
@@ -101,6 +113,7 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
     ) : (
       <div class="g">
         <h1>Pošaljite čestitku</h1>
+        {bezOdricanja && <p class="u-greska" role="alert">Prije plaćanja označite kvačicu o odustanku od kupnje.</p>}
         {
           izPaketa > 0 && (
             <form method="post" action="/napravi/plati" class="g-paket">
@@ -136,10 +149,12 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
                 Ista cijena s fotografijom i bez nje. Svaka čestitka vrijedi tri mjeseca od plaćanja, a zatim se briše zajedno s
                 fotografijom.{testnoPlacanje() && ' Plaćanje je testno: koristite Stripeovu testnu karticu 4242 4242 4242 4242.'}
               </p>
-              <p class="pl-pristanak">
-                Plaćanjem tražite da čestitka bude dostupna odmah i potvrđujete da time gubite pravo na odustanak od kupnje u roku od 14
-                dana. Više u <a href="/uvjeti#odustanak">uvjetima korištenja</a>.
-              </p>
+              {!javniKljuc && (
+                <label class="pl-odricanje">
+                  <input type="checkbox" name="odricanje" value="da" required />
+                  <span>{tekstOdricanja(1)} Ako kupujem paket, to vrijedi i za ostale čestitke iz paketa. Više u <a href="/uvjeti#odustanak">uvjetima korištenja</a>.</span>
+                </label>
+              )}
               <div class="g-gumbi">
                 <button type="submit" class="p-btn">
                   {javniKljuc ? 'Nastavi na plaćanje' : 'Plati karticom'}
@@ -177,6 +192,23 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
     const poruka = document.getElementById('pl-poruka') as HTMLParagraphElement;
     const element = document.getElementById('pl-element') as HTMLDivElement;
     const email = document.getElementById('pl-email') as HTMLInputElement;
+    const odricanje = document.getElementById('pl-odricanje') as HTMLInputElement;
+    // Rezerva na Stripeovoj stranici nosi istu kvačicu (server je provjerava u /napravi/plati).
+    const zamjena = document.getElementById('pl-zamjena') as HTMLFormElement | null;
+    const zamjenaOdricanje = document.getElementById('pl-zamjena-odricanje') as HTMLInputElement | null;
+    const nijeOznaceno = 'Prije plaćanja označite kvačicu o odustanku od kupnje.';
+    zamjena?.addEventListener('submit', (e) => {
+      if (!odricanje.checked) {
+        e.preventDefault();
+        pokazi(nijeOznaceno);
+        odricanje.focus();
+        return;
+      }
+      if (zamjenaOdricanje) zamjenaOdricanje.value = 'da';
+    });
+    odricanje.addEventListener('change', () => {
+      if (odricanje.checked && poruka.textContent === nijeOznaceno) pokazi('');
+    });
     const tekstGumba = gumb.textContent ?? '';
     const podaci = JSON.parse(forma.dataset.podaci ?? '{}') as Podaci;
     const pokazi = (t: string) => {
@@ -243,6 +275,11 @@ const podaci = JSON.stringify({ javniKljuc, clientSecret, fontovi });
         if (!email.checkValidity()) {
           pokazi('Upišite ispravnu e-mail adresu.');
           email.focus();
+          return;
+        }
+        if (!odricanje.checked) {
+          pokazi(nijeOznaceno);
+          odricanje.focus();
           return;
         }
         gumb.disabled = true;
