@@ -3,9 +3,11 @@
 // Kad se promijeni obrada (novi dobavljač, rok brisanja, kolačić), promijeni i ovaj tekst i datum.
 import Base from '../layouts/Base.astro';
 import { metaPiksel } from '../lib/piksel';
+import { konverzijeUkljucene } from '../lib/metaKonverzije';
 
 // Tekst o Metinom pikselu vrijedi samo kad je piksel uključen (META_PIXEL_ID).
 const piksel = metaPiksel() !== '';
+const saServera = konverzijeUkljucene();
 ---
 
 <Base title="Pravila privatnosti | Božićna čestitka" description="Koje podatke prikupljamo kad napravite ili otvorite božićnu čestitku, tko ih obrađuje i kada se brišu.">
@@ -69,8 +71,9 @@ const piksel = metaPiksel() !== '';
         <p>
           Podatke ne prodajemo i ne radimo profile korisnika. Samo ako prihvatite kolačiće, Metin piksel bilježi posjete stranicama i
           kupnju, da bismo znali koji su oglasi na Facebooku i Instagramu doveli do kupnje: na temelju vašeg pristanka (članak 6. stavak 1.
-          točka (a)). Pristanak možete povući bilo kad linkom "Kolačići" na dnu stranice. Sadržaj čestitke, ime primatelja, fotografija i
-          e-mail Meti se ne šalju.
+          točka (a)). {saServera && 'Uz isti pristanak i naš poslužitelj nakon uplate javi Meti kupnju: iznos, IP adresu, vrstu preglednika i Metinu oznaku iz kolačića. '}
+          Pristanak možete povući bilo kad linkom "Kolačići" na dnu stranice. Sadržaj čestitke, ime primatelja, fotografija i e-mail Meti se
+          ne šalju.
         </p>
       ) : (
         <p>
@@ -148,7 +151,7 @@ const piksel = metaPiksel() !== '';
           <li>
             <strong>Metin piksel</strong> (kolačići <code>_fbp</code> i <code>_fbc</code>, do 90 dana) prepoznaje preglednik koji je došao s
             oglasa i bilježi posjete i kupnju. Postavlja se tek kad kliknete "Prihvaćam". Vaš izbor pamti zapis u pregledniku
-            (<code>kolacici-pristanak</code>).
+            (<code>kolacici-pristanak</code>) i kolačić <code>kolacici</code> (godinu dana), po kojem poslužitelj zna da smije javiti kupnju.
           </li>
         )
       }

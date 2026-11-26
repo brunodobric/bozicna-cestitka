@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { otvoriNaplatu, placanjeDostupno } from '../../lib/placanje';
 import { ponuda as nadiPonudu } from '../../lib/cijena';
+import { metaPodaciZaSesiju } from '../../lib/metaKonverzije';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -31,7 +32,7 @@ export const POST: APIRoute = async ({ request, locals, url, redirect }) => {
   // Bez izričitog pristanka na isporuku odmah (kvačica o odustanku) ne otvaramo naplatu.
   if (f.get('odricanje') !== 'da') return redirect(`/napravi/placanje/${id}?ponuda=${p.key}&odricanje=nedostaje`, 303);
   try {
-    return redirect(await otvoriNaplatu(user, id, p, url.origin), 303);
+    return redirect(await otvoriNaplatu(user, id, p, url.origin, metaPodaciZaSesiju(request)), 303);
   } catch (e) {
     console.error('placanje', e);
     return redirect(`${pregled}?placanje=greska`, 303);

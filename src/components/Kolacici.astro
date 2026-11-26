@@ -107,8 +107,16 @@ const dogadaj = Astro.props.dogadaj ? JSON.stringify(Astro.props.dogadaj) : unde
       if (ucitan) location.reload();
     };
 
+    // Kolačić za server: uz njega se kupnja javlja Meti i sa servera (lib/metaKonverzije.ts).
+    const kolacicPristanka = (da: boolean) => {
+      document.cookie = da ? 'kolacici=da; Max-Age=31536000; path=/; SameSite=Lax; Secure' : 'kolacici=; Max-Age=0; path=/';
+    };
+
     const izbor = procitaj(KLJUC);
-    if (izbor === 'da') ucitajPiksel();
+    if (izbor === 'da') {
+      kolacicPristanka(true);
+      ucitajPiksel();
+    }
     else if (izbor !== 'ne') pokazi(true);
 
     okvir.addEventListener('click', (e) => {
@@ -116,6 +124,7 @@ const dogadaj = Astro.props.dogadaj ? JSON.stringify(Astro.props.dogadaj) : unde
       if (!gumb) return;
       const da = gumb.dataset.kolacici === 'da';
       zapisi(KLJUC, da ? 'da' : 'ne');
+      kolacicPristanka(da);
       pokazi(false);
       if (da) ucitajPiksel();
       else ugasiPiksel();
