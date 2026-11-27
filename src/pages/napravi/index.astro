@@ -12,6 +12,7 @@ import { MELODIJE, datotekaMelodije } from '../../lib/melodije';
 import { NAJVISE, NASLOVI, PRAZNO, type Unos } from '../../lib/uredivac';
 import { javniUrlSlike } from '../../lib/cestitka';
 import type { FontFamily } from '../../lib/fontovi';
+import { CIJENA_JEDNE, CIJENA_KRATKO } from '../../lib/cijena';
 import '../../styles/uredivac.css';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -49,6 +50,13 @@ if (UUID.test(trazeniId)) {
   const t = Astro.url.searchParams.get('tema');
   if (TEME.some((x) => x.key === t)) unos.tema = temaInfo(t).key;
 }
+// Ostatak paketa: tko ga ima, ne treba vidjeti cijenu nego koliko mu je čestitki ostalo.
+const { data: paket } = Astro.locals.user ? await Astro.locals.supabase.from('paketi').select('preostalo').maybeSingle() : { data: null };
+const izPaketa = paket?.preostalo ?? 0;
+const tekstCijene =
+  izPaketa > 0
+    ? `Iz paketa vam je ostalo još ${izPaketa}, pa ova čestitka ne košta ništa dodatno.`
+    : `${CIJENA_KRATKO} Plaćate tek kad čestitku pogledate u kuverti.`;
 const info = temaInfo(unos.tema);
 const fontovi = [...new Set(TEME.flatMap((t) => t.fonts))] as FontFamily[];
 // Podaci za skriptu: opis svake čestitke (okvir, fontovi, boje) i granica duljine poruke.
@@ -62,6 +70,7 @@ const pocetak = { id, unos, slikaUrl };
     <header class="u-uvod">
       <h1>Napravi čestitku</h1>
       <p class="p-muted">Odaberite dizajn, napišite poruku i odaberite glazbu. Pregled čestitke se mijenja dok pišete.</p>
+      {!placeno && <p class="u-cijena">{tekstCijene}</p>}
       {izgubljena && <p class="u-obavijest">Ta čestitka nije spremljena na ovom uređaju. Možete napraviti novu.</p>}
       {
         otvorena ? (
@@ -184,7 +193,7 @@ const pocetak = { id, unos, slikaUrl };
                 Spremi i pogledaj u kuverti
               </button>
               <p class="p-small p-muted" id="stanje" aria-live="polite">
-                {placeno ? 'Promjene vidi primatelj čim spremite.' : 'Plaćanje i slanje linka dolaze nakon spremanja.'}
+                {placeno ? 'Promjene vidi primatelj čim spremite.' : izPaketa > 0 ? 'Slanje linka dolazi nakon spremanja.' : `Plaćanje (${CIJENA_JEDNE}) i slanje linka dolaze nakon spremanja.`}
               </p>
             </>
           )
