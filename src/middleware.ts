@@ -3,7 +3,7 @@ import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { env } from "cloudflare:workers";
 import { ROBOT, siteOrigin } from "./lib/seo";
 import { metaPiksel, PIKSEL_CSP } from "./lib/piksel";
-import { brojiUlazak, izvorUlaska } from "./lib/izvor";
+import { brojiUlazak, izvorIzOznake, izvorUlaska, PARAM_IZVOR } from "./lib/izvor";
 
 // Stara adresa na workers.dev. Kad je upisan SITE_URL (https://bozicna.kuverta.hr), posjeti se preusmjeravaju
 // na pravu domenu. Webhook ostaje na staroj adresi dok se u Stripeu ne promijeni, a pregledi grana
@@ -108,17 +108,24 @@ export const onRequest = defineMiddleware(async (context, next) => {
     !/prefetch|prerender/i.test(zaglavlja.get("Sec-Purpose") ?? zaglavlja.get("Purpose") ?? "") &&
     !ROBOT.test(zaglavlja.get("User-Agent") ?? "")
   ) {
+    const cf = (context.locals as { cfContext?: { waitUntil(p: Promise<unknown>): void } }).cfContext;
+    const uPozadini = async (ime: string, poziv: PromiseLike<{ error: { message: string } | null }>) => {
+      const p = Promise.resolve(poziv.then(({ error }) => {
+        if (error) console.error(ime, error.message);
+      }));
+      if (cf) cf.waitUntil(p);
+      else await p;
+    };
     const izvor = izvorUlaska(url, zaglavlja.get("Referer"));
     if (izvor) {
       context.locals.izvor = izvor;
-      const posjet = Promise.resolve(supabase
-        .rpc("zabiljezi_posjet", { p_izvor: izvor.izvor, p_medij: izvor.medij, p_kampanja: izvor.kampanja, p_oglas: izvor.oglas })
-        .then(({ error }) => {
-          if (error) console.error("zabiljezi_posjet", error.message);
-        }));
-      const cf = (context.locals as { cfContext?: { waitUntil(p: Promise<unknown>): void } }).cfContext;
-      if (cf) cf.waitUntil(posjet);
-      else await posjet;
+      await uPozadini("zabiljezi_posjet", supabase
+        .rpc("zabiljezi_posjet", { p_izvor: izvor.izvor, p_medij: izvor.medij, p_kampanja: izvor.kampanja, p_oglas: izvor.oglas }));
+    }
+    // Lijevak kupnje (migracija 011): otvoren uređivač za novu čestitku, po izvoru iz ?od= ili ovog ulaska.
+    if (/^\/napravi\/?$/.test(path) && !url.searchParams.get("id")) {
+      const i = izvorIzOznake(url.searchParams.get(PARAM_IZVOR)) ?? izvor;
+      await uPozadini("zabiljezi_korak", supabase.rpc("zabiljezi_korak", { p_korak: "uredivac", p_izvor: i?.izvor ?? "" }));
     }
   }
 
