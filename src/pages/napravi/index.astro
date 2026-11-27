@@ -3,6 +3,7 @@
 // i po želji doda jednu fotografiju. Pregled se crta uživo istim kodom kao čestitka primatelja
 // (scripts/cestitka.ts). Prvo spremanje kupca tiho prijavi anonimno (napravi/spremi.ts).
 // /napravi?id=<uuid> otvara čestitku koju je kupac već spremio na ovom uređaju.
+import { izvorIzOznake, izvorUOznaku, PARAM_IZVOR } from '../../lib/izvor';
 import Base from '../../layouts/Base.astro';
 import Turnstile from '../../components/Turnstile.astro';
 import ThemeFonts from '../../components/ThemeFonts.astro';
@@ -15,6 +16,8 @@ import '../../styles/uredivac.css';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const trazeniId = Astro.url.searchParams.get('id') ?? '';
+// Otkud je kupac došao (lib/izvor.ts): s naslovnice u poveznici (?od=), ili ulazak ravno na ovu stranicu.
+const odIzvor = izvorIzOznake(Astro.url.searchParams.get(PARAM_IZVOR)) ?? Astro.locals.izvor;
 let id = '';
 let unos: Unos = { ...PRAZNO };
 let slikaUrl: string | null = null;
@@ -77,6 +80,7 @@ const pocetak = { id, unos, slikaUrl };
 
     <form class="u-obrazac" id="obrazac" novalidate inert={otvorena}>
       <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="od_izvor" value={!id && odIzvor ? izvorUOznaku(odIzvor) : ''} />
 
       <fieldset class="u-korak">
         <legend><span>1</span> Dizajn</legend>

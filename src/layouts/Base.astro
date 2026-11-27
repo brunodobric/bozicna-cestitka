@@ -7,6 +7,7 @@ import { SITE_NAME, siteOrigin } from '../lib/seo';
 import Rubovi from '../components/Rubovi.astro';
 import Kolacici from '../components/Kolacici.astro';
 import { metaPiksel, type PikselDogadaj } from '../lib/piksel';
+import { izvorUOznaku } from '../lib/izvor';
 
 interface Props {
   title: string;
@@ -25,6 +26,8 @@ const themeColor = Astro.props.themeColor ?? pozadina;
 const origin = siteOrigin(Astro.url);
 const path = Astro.url.pathname;
 const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
+// Izvor ulaska (middleware, lib/izvor.ts): skripta na dnu ga doda poveznicama, da stigne do uređivača.
+const izvor = Astro.locals.izvor ? izvorUOznaku(Astro.locals.izvor) : '';
 ---
 
 <!doctype html>
@@ -48,6 +51,7 @@ const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
     {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:image" content={`${origin}/og-cestitka.png`} />
     <meta name="twitter:card" content="summary_large_image" />
+    {izvor && <meta name="izvor" content={izvor} />}
     <ThemeFonts families={['garamond', 'garamond-italic', 'jakarta']} preload="garamond" />
   </head>
   <body class:list={['platform', klasa]}>
@@ -71,5 +75,28 @@ const canonical = origin + (path === '/' ? '/' : path.replace(/\/$/, ''));
       </nav>
     </footer>
     <Kolacici dogadaj={piksel} />
+    <script is:inline>
+      // Izvor ulaska (ili ?od= iz prethodne stranice) ide u poveznice na našoj stranici, da uređivač zna
+      // otkud je kupac došao (spremi.ts ga upiše uz čestitku). Bez kolačića; uz "Samo nužni" se ne prenosi.
+      (function () {
+        try {
+          if (localStorage.getItem('kolacici-pristanak') === 'ne') {
+            document.querySelectorAll('input[name="od_izvor"]').forEach(function (i) { i.value = ''; });
+            return;
+          }
+          var m = document.querySelector('meta[name="izvor"]');
+          var od = m ? m.getAttribute('content') : new URLSearchParams(location.search).get('od');
+          if (!od) return;
+          document.querySelectorAll('a[href^="/"]').forEach(function (a) {
+            var h = a.getAttribute('href') || '';
+            if (h.indexOf('//') === 0 || /^\/(c|stripe)\//.test(h)) return;
+            var u = new URL(h, location.origin);
+            if (u.searchParams.has('od')) return;
+            u.searchParams.set('od', od);
+            a.setAttribute('href', u.pathname + u.search + u.hash);
+          });
+        } catch (e) {}
+      })();
+    </script>
   </body>
 </html>

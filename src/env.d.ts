@@ -6,6 +6,8 @@ declare namespace App {
     user: import('@supabase/supabase-js').User | null;
     // Adresa Supabase projekta (https://xxxx.supabase.co), za javne URL-ove slika.
     supabaseUrl: string;
+    // Izvor ulaska na stranicu (utm, vanjska stranica, izravno), null za klik unutar stranice. Vidi lib/izvor.ts.
+    izvor: import('./lib/izvor').Izvor | null;
   }
 }
 
