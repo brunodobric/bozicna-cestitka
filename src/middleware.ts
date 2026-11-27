@@ -1,15 +1,16 @@
 import { defineMiddleware } from "astro:middleware";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { env } from "cloudflare:workers";
-import { siteOrigin } from "./lib/seo";
+import { ROBOT, siteOrigin } from "./lib/seo";
 import { metaPiksel, PIKSEL_CSP } from "./lib/piksel";
+import { brojiUlazak, izvorUlaska } from "./lib/izvor";
 
 // Stara adresa na workers.dev. Kad je upisan SITE_URL (https://bozicna.kuverta.hr), posjeti se preusmjeravaju
 // na pravu domenu. Webhook ostaje na staroj adresi dok se u Stripeu ne promijeni, a pregledi grana
 // (<grana>-bozicna-cestitka...workers.dev) ostaju gdje jesu.
 const STARA_ADRESA = "bozicna-cestitka.bruno-dobric32.workers.dev";
 
-// Preuzeto iz Kuverte (src/middleware.ts), bez praćenja izvora posjeta.
+// Preuzeto iz Kuverte (src/middleware.ts). Posjete se broje po izvoru (src/lib/izvor.ts, migracija 009).
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, request } = context;
@@ -92,6 +93,33 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!isPublic && imaSesiju) {
     const { data } = await supabase.auth.getUser();
     context.locals.user = data.user ?? null;
+  }
+
+  // Ulazak na stranicu (s oznakom utm, s vanjske stranice ili upisanom adresom) broji se po danu i izvoru,
+  // bez kolačića. Roboti, pregledi poveznica i prefetch se ne broje. Izvor ide i u stranicu (Base.astro),
+  // da poveznice do uređivača ponesu izvor i da se vidi otkud su kupnje.
+  context.locals.izvor = null;
+  const zaglavlja = request.headers;
+  const dest = zaglavlja.get("Sec-Fetch-Dest");
+  if (
+    request.method === "GET" &&
+    brojiUlazak(path) &&
+    (!dest || dest === "document") &&
+    !/prefetch|prerender/i.test(zaglavlja.get("Sec-Purpose") ?? zaglavlja.get("Purpose") ?? "") &&
+    !ROBOT.test(zaglavlja.get("User-Agent") ?? "")
+  ) {
+    const izvor = izvorUlaska(url, zaglavlja.get("Referer"));
+    if (izvor) {
+      context.locals.izvor = izvor;
+      const posjet = Promise.resolve(supabase
+        .rpc("zabiljezi_posjet", { p_izvor: izvor.izvor, p_medij: izvor.medij, p_kampanja: izvor.kampanja, p_oglas: izvor.oglas })
+        .then(({ error }) => {
+          if (error) console.error("zabiljezi_posjet", error.message);
+        }));
+      const cf = (context.locals as { cfContext?: { waitUntil(p: Promise<unknown>): void } }).cfContext;
+      if (cf) cf.waitUntil(posjet);
+      else await posjet;
+    }
   }
 
   const response = await next();

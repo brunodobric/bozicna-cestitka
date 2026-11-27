@@ -48,6 +48,13 @@ const saServera = konverzijeUkljucene();
       Bilježimo samo vrijeme prvog otvaranja, jer se nakon toga čestitka više ne može mijenjati. Ne tražimo ime ni mail primatelja i ne
       pratimo tko je otvorio čestitku.
     </p>
+    <h3>Brojanje posjeta</h3>
+    <p>
+      Brojimo koliko je ulazaka na stranicu bilo svaki dan i otkud su došli: s oznake u poveznici (na primjer oglas na Instagramu), sa
+      stranice s koje ste kliknuli ili izravno. Spremamo samo zbroj po danu i izvoru, bez IP adrese, kolačića i bilo kakve oznake
+      posjetitelja. Kad napravite čestitku, uz nju spremimo izvor s kojim ste došli, da znamo koje objave i oglasi dovode do kupnje. Ako
+      kod kolačića odaberete "Samo nužni", izvor se uz čestitku ne sprema.
+    </p>
     <h3>Tehnički zapisi</h3>
     <p>
       Poslužitelji kratko zapisuju IP adresu, vrstu preglednika i vrijeme zahtjeva. To trebamo za sigurnost i otklanjanje grešaka, a zapise
@@ -65,6 +72,10 @@ const saServera = konverzijeUkljucene();
         <strong>Zaštita od zlouporabe i tehnički zapisi:</strong> naš legitimni interes da stranica radi sigurno (članak 6. stavak 1. točka
         (f)).
       </li>
+      <li>
+        <strong>Brojanje posjeta i izvor kupnje:</strong> naš legitimni interes da znamo koje objave i oglasi dovode kupce (članak 6.
+        stavak 1. točka (f)).
+      </li>
     </ul>
     {
       piksel ? (
@@ -77,8 +88,8 @@ const saServera = konverzijeUkljucene();
         </p>
       ) : (
         <p>
-          Podatke ne prodajemo, ne koristimo ih za oglašavanje i ne radimo profile korisnika. Na stranici nema analitike, oglasnih piksela
-          ni kolačića za praćenje.
+          Podatke ne prodajemo, ne koristimo ih za oglašavanje i ne radimo profile korisnika. Na stranici nema oglasnih piksela ni kolačića
+          za praćenje, a posjete brojimo samo kao zbroj po danu i izvoru.
         </p>
       )
     }

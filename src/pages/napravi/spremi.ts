@@ -2,6 +2,7 @@
 // prijavi anonimno (pravi auth.uid(), kolačić sesije je httpOnly), pa sva pravila RLS-a rade kao za
 // prijavljenog korisnika. Zaštita: RLS na tablici (samo vlasnik), okidač cestitka_guard (ne može sam
 // platiti ni mijenjati tokene) i pravila bucketa (fotografija samo u mapi vlastite čestitke).
+import { izvorIzOznake, izvorUOznaku } from '../../lib/izvor';
 import type { APIRoute } from 'astro';
 import { captchaToken } from '../../lib/turnstile';
 import { provjeri } from '../../lib/uredivac';
@@ -74,11 +75,14 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
       return odgovor(500, { greska: 'Čestitka se nije spremila. Pokušajte ponovno.' });
     }
   } else {
-    const { data, error } = await supabase
-      .from('cestitke')
-      .insert({ ...unos, owner_id: user.id })
-      .select('id')
-      .single();
+    // Izvor kupca (lib/izvor.ts) ide uz čestitku, da se u nadzoru vidi otkud su kupnje (migracija 009).
+    const izvor = izvorIzOznake(String(f.get('od_izvor') ?? ''));
+    const vlasnik = user.id;
+    const umetni = (s: Record<string, unknown>) =>
+      supabase.from('cestitke').insert({ ...unos, ...s, owner_id: vlasnik }).select('id').single();
+    let { data, error } = await umetni(izvor ? { izvor: izvorUOznaku(izvor) } : {});
+    // Dok migracija 009 nije pokrenuta, stupca izvor nema: spremamo bez njega.
+    if (error && izvor && /izvor/.test(error.message)) ({ data, error } = await umetni({}));
     if (error || !data) {
       console.error('insert cestitke', error?.message);
       return odgovor(500, { greska: 'Čestitka se nije spremila. Pokušajte ponovno.' });
