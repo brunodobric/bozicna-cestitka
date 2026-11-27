@@ -1,6 +1,6 @@
 ---
 // Početna stranica: noćna božićna scena (lampice, mjesec, snijeg, drvca, svjetiljke, snjegović, saonice).
-// SEO tekst, cijena i česta pitanja dolaze u koraku 12, kad budu odlučeni ime, domena i cijena.
+// Cijena je ispod gumba u uvodu i uz donji gumb (lib/cijena.ts). SEO tekst i česta pitanja dolaze u koraku 12.
 import '@fontsource/great-vibes/latin-400.css';
 import '@fontsource/great-vibes/latin-ext-400.css';
 import '../styles/pocetna.css';
@@ -9,6 +9,7 @@ import NocnaScena from '../components/NocnaScena.astro';
 import Snijeg from '../components/Snijeg.astro';
 import { TEME } from '../lib/teme';
 import { SITE_DESCRIPTION, SITE_NAME } from '../lib/seo';
+import { CIJENA_JEDNE, CIJENA_KRATKO } from '../lib/cijena';
 
 // Lampice na žici: lukovi široki 120, po tri žaruljice na svakom.
 const BOJE = ['#f5cf58', '#e0483f', '#faf6f0', '#3fa66e'];
@@ -72,7 +73,8 @@ const zvijezde = Array.from({ length: 46 }, () => ({
         <a class="p-btn" href="/napravi">Napravi čestitku</a>
         <a class="p-btn p-btn--ghost" href="/primjer/klasicna">Pogledaj primjer</a>
       </div>
-      <p class="n-hero__napomena">Bez registracije i bez aplikacije.</p>
+      <p class="n-hero__cijena">{CIJENA_KRATKO}</p>
+      <p class="n-hero__napomena">Plaćate tek kad čestitku vidite u kuverti. Bez registracije i bez aplikacije.</p>
     </div>
     <NocnaScena />
   </section>
@@ -87,7 +89,7 @@ const zvijezde = Array.from({ length: 46 }, () => ({
         </li>
         <li>
           <h3>Pošaljete link</h3>
-          <p>Nakon plaćanja dobijete link i gumb za slanje u WhatsApp, Viber ili Messenger.</p>
+          <p>Nakon plaćanja ({CIJENA_JEDNE}) dobijete link i gumb za slanje u WhatsApp, Viber ili Messenger.</p>
         </li>
         <li>
           <h3>Primatelj otvori kuvertu</h3>
@@ -118,6 +120,7 @@ const zvijezde = Array.from({ length: 46 }, () => ({
         }
       </div>
       <p class="n-kuverte__cta"><a class="p-btn" href="/napravi">Napravi čestitku</a></p>
+      <p class="n-kuverte__cijena">{CIJENA_KRATKO}</p>
     </div>
   </section>
 </Base>

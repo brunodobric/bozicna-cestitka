@@ -16,3 +16,8 @@ export const ponudaZaKomada = (n: unknown): Ponuda | null => PONUDE.find((p) => 
 export const iznos = (centi: number) => (centi / 100).toFixed(2).replace('.', ',') + ' €';
 
 export const nazivPonude = (komada: number) => (komada === 1 ? 'Jedna čestitka' : `Paket od ${komada} čestitki`);
+
+// Kratki tekst cijene za početnu, uređivač i pregled (Bruno, 27. 11. 2026.: cijena se vidi prije plaćanja).
+const centiZa = (key: PonudaKey) => PONUDE.find((p) => p.key === key)!.centi;
+export const CIJENA_JEDNE = iznos(centiZa('jedna'));
+export const CIJENA_KRATKO = `Jedna čestitka ${CIJENA_JEDNE}, paket od 5 za ${iznos(centiZa('paket5'))}, paket od 10 za ${iznos(centiZa('paket10'))}.`;
