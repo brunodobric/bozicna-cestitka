@@ -20,6 +20,10 @@ const { data: c } = await supabase.from('cestitke').select('id, placeno, poruka'
 if (!c) return Astro.redirect(`/napravi?id=${encodeURIComponent(id)}`);
 if (c.placeno) return Astro.redirect(`/napravi/gotovo/${id}`);
 if (!c.poruka?.trim()) return Astro.redirect(`/napravi?id=${id}`);
+// Lijevak kupnje za dp-nadzor (migracija 011): baza upiše samo prvo otvaranje plaćanja za ovu čestitku.
+await supabase.rpc('oznaci_placanje', { p_id: id }).then(({ error }) => {
+  if (error && !/oznaci_placanje|schema cache/.test(error.message)) console.error('oznaci_placanje', error.message);
+});
 
 const { data: paket } = await supabase.from('paketi').select('preostalo').maybeSingle();
 const izPaketa = paket?.preostalo ?? 0;
